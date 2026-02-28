@@ -12,6 +12,11 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface Category {
   id: string;
@@ -40,15 +45,28 @@ export function CategoryList({
         <SidebarGroupLabel className="font-heading tracking-wider uppercase">
           Categories
         </SidebarGroupLabel>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="relative top-[2px] h-6 w-6"
-          onClick={onAddCategory}
-          aria-label="Add new category"
-        >
-          <Plus className="h-4 w-4" />
-        </Button>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="relative top-[2px] h-6 w-6"
+              onClick={onAddCategory}
+              aria-label="Add new category"
+            >
+              <Plus className="h-4 w-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent
+            side="right"
+            className="flex items-center gap-2 border-none bg-black/80 text-[10px] font-bold tracking-wider text-white backdrop-blur-md"
+          >
+            <span>NEW CATEGORY</span>
+            <kbd className="rounded bg-white/10 px-1.5 py-0.5 font-mono opacity-60">
+              ALT C
+            </kbd>
+          </TooltipContent>
+        </Tooltip>
       </div>
       <SidebarMenu>
         {isLoading ? (

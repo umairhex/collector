@@ -23,6 +23,9 @@ import { DEFAULT_CATEGORIES } from "@/lib/utils";
 
 export function NoteEditor() {
   const [activeNoteId, setActiveNoteId] = useQueryState("noteId");
+  const [activeCategory, setActiveCategory] = useQueryState("category", {
+    defaultValue: "all",
+  });
   const [searchQuery, setSearchQuery] = useQueryState("search", {
     defaultValue: "",
   });
@@ -44,16 +47,13 @@ export function NoteEditor() {
   const lastIdRef = React.useRef<string | null>(null);
 
   React.useEffect(() => {
+    const isSameNote = activeNoteId === lastIdRef.current;
     if (activeNote) {
       setLocalTitle((prev) =>
-        activeNoteId !== lastIdRef.current || prev === ""
-          ? activeNote.title || ""
-          : prev,
+        !isSameNote || prev === "" ? activeNote.title || "" : prev,
       );
       setLocalContent((prev) =>
-        activeNoteId !== lastIdRef.current || prev === ""
-          ? activeNote.content || ""
-          : prev,
+        !isSameNote || prev === "" ? activeNote.content || "" : prev,
       );
       lastIdRef.current = activeNoteId;
     } else {
@@ -103,6 +103,12 @@ export function NoteEditor() {
     deleteNote.mutate(activeNoteId, {
       onSuccess: () => {
         toast.success("Note deleted successfully");
+        if (nextNoteId) {
+          const nextNote = notes.find((n) => n._id === nextNoteId);
+          if (nextNote && nextNote.category.toLowerCase() !== activeCategory) {
+            setActiveCategory(nextNote.category.toLowerCase());
+          }
+        }
         setActiveNoteId(nextNoteId);
       },
       onError: () => {
@@ -111,9 +117,11 @@ export function NoteEditor() {
     });
   };
 
-  const handlePaste = async () => {
+  const handlePaste = React.useCallback(async () => {
     try {
       const text = await navigator.clipboard.readText();
+      if (!text) return;
+
       setLocalContent((prev) => {
         const next = prev ? `${prev}\n${text}` : text;
         debouncedUpdate({ content: next });
@@ -123,7 +131,19 @@ export function NoteEditor() {
     } catch {
       toast.error("Clipboard permission denied or failed to read.");
     }
-  };
+  }, [debouncedUpdate]);
+
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.altKey && e.key === "v") {
+        e.preventDefault();
+        handlePaste();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [handlePaste]);
 
   return (
     <div className="bg-background relative flex h-full flex-1 flex-col overflow-hidden">

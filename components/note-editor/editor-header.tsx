@@ -30,6 +30,19 @@ export const EditorHeader = React.memo(function EditorHeader({
     setMounted(true);
   }, []);
 
+  const searchRef = React.useRef<HTMLInputElement>(null);
+
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === "k") {
+        e.preventDefault();
+        searchRef.current?.focus();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
   return (
     <header className="border-border bg-background flex h-16 shrink-0 items-center justify-between gap-2 border-b px-4">
       <div className="flex items-center gap-2">
@@ -37,6 +50,7 @@ export const EditorHeader = React.memo(function EditorHeader({
         <Separator orientation="vertical" className="mr-2 h-4" />
 
         <SearchInput
+          ref={searchRef}
           value={searchQuery}
           onChange={setSearchQuery}
           className="hidden max-w-sm md:block lg:max-w-md"

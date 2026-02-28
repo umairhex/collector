@@ -5,6 +5,11 @@ import { Plus, Loader2, Search } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 import { SidebarGroup, SidebarGroupLabel } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -41,20 +46,33 @@ export function NoteList({
         <SidebarGroupLabel className="font-heading tracking-wider uppercase">
           Notes
         </SidebarGroupLabel>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="relative top-[2px] h-6 w-6"
-          onClick={onCreateNote}
-          disabled={isCreating}
-          aria-label="Create new note"
-        >
-          {isCreating ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            <Plus className="h-4 w-4" />
-          )}
-        </Button>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="relative top-[2px] h-6 w-6"
+              onClick={onCreateNote}
+              disabled={isCreating}
+              aria-label="Create new note"
+            >
+              {isCreating ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Plus className="h-4 w-4" />
+              )}
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent
+            side="right"
+            className="flex items-center gap-2 border-none bg-black/80 text-[10px] font-bold tracking-wider text-white backdrop-blur-md"
+          >
+            <span>NEW NOTE</span>
+            <kbd className="rounded bg-white/10 px-1.5 py-0.5 font-mono opacity-60">
+              ALT N
+            </kbd>
+          </TooltipContent>
+        </Tooltip>
       </div>
       <ScrollArea className="-mx-2 h-full flex-1 px-2">
         <div className="space-y-2 pb-4">

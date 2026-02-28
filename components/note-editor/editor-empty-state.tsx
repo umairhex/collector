@@ -18,7 +18,7 @@ export function EditorEmptyState() {
           <EmptyMedia variant="icon">
             <Search className="h-6 w-6 opacity-50" />
           </EmptyMedia>
-          <EmptyTitle className="font-heading text-2xl font-semibold">
+          <EmptyTitle className="font-heading text-2xl font-semibold tracking-wide">
             No Note Selected
           </EmptyTitle>
           <EmptyDescription className="mx-auto max-w-[250px]">

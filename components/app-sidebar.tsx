@@ -21,7 +21,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     defaultValue: "all",
   });
   const [activeNoteId, setActiveNoteId] = useQueryState("noteId");
-  const [searchQuery] = useQueryState("search", { defaultValue: "" });
+  const [searchQuery, setSearchQuery] = useQueryState("search", {
+    defaultValue: "",
+  });
 
   const { data: notes, isLoading } = useNotes();
   const { data: categories = [{ id: "all", name: "All Notes", count: 0 }] } =
@@ -53,7 +55,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     return result;
   }, [notes, activeCategory, searchQuery]);
 
-  const handleCreateNote = () => {
+  const handleCreateNote = React.useCallback(() => {
+    if (searchQuery) setSearchQuery("");
+
     const defaultCategory =
       activeCategory === "all"
         ? "Ideas"
@@ -72,7 +76,29 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         onError: () => toast.error("Failed to create note"),
       },
     );
-  };
+  }, [
+    activeCategory,
+    createNote,
+    setActiveNoteId,
+    setActiveCategory,
+    searchQuery,
+    setSearchQuery,
+  ]);
+
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.altKey && e.key === "n") {
+        e.preventDefault();
+        handleCreateNote();
+      }
+      if (e.altKey && e.key === "c") {
+        e.preventDefault();
+        setIsCategoryDialogOpen(true);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [activeCategory, handleCreateNote]);
 
   const handleAddCategory = (name: string) => {
     createNote.mutate(

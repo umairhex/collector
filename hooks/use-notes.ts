@@ -88,8 +88,9 @@ export function useCreateNote() {
       await queryClient.cancelQueries({ queryKey: ["notes"] });
       const previousNotes = queryClient.getQueryData<Note[]>(["notes"]);
 
+      const tempId = `temp-${Date.now()}`;
       const optimisticNote = {
-        _id: `temp-${Date.now()}`,
+        _id: tempId,
         ...newNote,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
@@ -100,11 +101,11 @@ export function useCreateNote() {
         ...old,
       ]);
 
-      return { previousNotes };
+      return { previousNotes, tempId };
     },
-    onSuccess: (newNote) => {
+    onSuccess: (newNote, _variables, context) => {
       queryClient.setQueryData<Note[]>(["notes"], (old = []) => {
-        return old.map((n) => (n._id.startsWith("temp-") ? newNote : n));
+        return old.map((n) => (n._id === context?.tempId ? newNote : n));
       });
     },
     onError: (_err, _newNote, context) => {

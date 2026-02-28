@@ -56,24 +56,32 @@ export const EditorToolbar = React.memo(function EditorToolbar({
           </TooltipTrigger>
           <TooltipContent
             side="top"
-            className="bg-popover text-popover-foreground border-border/50"
+            className="flex items-center gap-2 border-none bg-black/80 text-[10px] font-bold tracking-wider text-white backdrop-blur-md"
           >
-            Paste Content
+            <span>INSTANT PASTE</span>
+            <kbd className="rounded bg-white/10 px-1.5 py-0.5 font-mono opacity-60">
+              ALT V
+            </kbd>
           </TooltipContent>
         </Tooltip>
 
         <div className="bg-border/30 mx-1 h-6 w-[1px]" />
 
-        <div className="text-muted-foreground/80 flex min-w-[100px] items-center justify-center gap-2 rounded-xl px-4 py-2 text-[10px] font-bold tracking-[0.2em] uppercase">
+        <div className="text-muted-foreground/80 flex min-w-[120px] items-center justify-center gap-2 rounded-xl px-4 py-2 text-[10px] font-bold tracking-[0.2em] uppercase">
           {isUpdating ? (
             <div className="flex items-center gap-2">
               <Loader2 className="text-primary h-3 w-3 animate-spin" />
-              <span>Saving...</span>
+              <span>Syncing...</span>
+            </div>
+          ) : typeof navigator !== "undefined" && !navigator.onLine ? (
+            <div className="flex items-center gap-2 text-amber-500/80">
+              <div className="h-1.5 w-1.5 animate-pulse rounded-full bg-current" />
+              <span>Offline Ready</span>
             </div>
           ) : (
             <div className="text-primary/80 flex items-center gap-2">
               <CheckCircle2 className="h-3 w-3" />
-              <span>Securely Synced</span>
+              <span>Cloud Synced</span>
             </div>
           )}
         </div>

@@ -33,6 +33,10 @@ async function connectToDatabase() {
   if (!mongooseCache.promise) {
     const opts = {
       bufferCommands: false,
+      maxPoolSize: 10,
+      serverSelectionTimeoutMS: 5000,
+      socketTimeoutMS: 45000,
+      family: 4,
     };
 
     mongooseCache.promise = mongoose.connect(MONGODB_URI, opts);
