@@ -1,0 +1,68 @@
+"use client";
+
+import * as React from "react";
+import { useTheme } from "next-themes";
+import { Sun, Moon } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import { SidebarTrigger } from "@/components/ui/sidebar";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { SearchInput } from "@/components/search-input";
+
+interface EditorHeaderProps {
+  searchQuery: string;
+  setSearchQuery: (query: string | null) => void;
+}
+
+export const EditorHeader = React.memo(function EditorHeader({
+  searchQuery,
+  setSearchQuery,
+}: EditorHeaderProps) {
+  const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = React.useState(false);
+
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  return (
+    <header className="flex h-16 shrink-0 items-center justify-between gap-2 border-b border-border bg-background px-4">
+      <div className="flex items-center gap-2">
+        <SidebarTrigger className="-ml-1" />
+        <Separator orientation="vertical" className="mr-2 h-4" />
+
+        <SearchInput
+          value={searchQuery}
+          onChange={setSearchQuery}
+          className="max-w-sm lg:max-w-md hidden md:block"
+        />
+      </div>
+
+      {mounted && (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+              className="rounded-full"
+              aria-label="Toggle theme"
+            >
+              {theme === "dark" ? (
+                <Sun className="w-5 h-5" />
+              ) : (
+                <Moon className="w-5 h-5" />
+              )}
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="bottom">Toggle theme</TooltipContent>
+        </Tooltip>
+      )}
+    </header>
+  );
+});
