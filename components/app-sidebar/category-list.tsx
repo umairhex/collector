@@ -12,6 +12,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useIsMobile } from "@/hooks/use-mobile";
 import {
   Tooltip,
   TooltipContent,
@@ -39,6 +40,7 @@ export function CategoryList({
   onAddCategory,
   isLoading,
 }: CategoryListProps) {
+  const isMobile = useIsMobile();
   return (
     <SidebarGroup>
       <div className="mb-2 flex items-center justify-between px-2">
@@ -58,7 +60,7 @@ export function CategoryList({
             </Button>
           </TooltipTrigger>
           <TooltipContent
-            side="right"
+            side={isMobile ? "bottom" : "right"}
             className="flex items-center gap-2 border-none bg-black/80 text-[10px] font-bold tracking-wider text-white backdrop-blur-md"
           >
             <span>NEW CATEGORY</span>

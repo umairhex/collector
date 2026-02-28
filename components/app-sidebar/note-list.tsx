@@ -5,6 +5,7 @@ import { Plus, Loader2, Search } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 import { SidebarGroup, SidebarGroupLabel } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
+import { useIsMobile } from "@/hooks/use-mobile";
 import {
   Tooltip,
   TooltipContent,
@@ -40,6 +41,7 @@ export function NoteList({
   isLoading,
   searchQuery,
 }: NoteListProps) {
+  const isMobile = useIsMobile();
   return (
     <SidebarGroup className="mt-4 flex-1">
       <div className="mb-2 flex items-center justify-between px-2">
@@ -64,7 +66,7 @@ export function NoteList({
             </Button>
           </TooltipTrigger>
           <TooltipContent
-            side="right"
+            side={isMobile ? "bottom" : "right"}
             className="flex items-center gap-2 border-none bg-black/80 text-[10px] font-bold tracking-wider text-white backdrop-blur-md"
           >
             <span>NEW NOTE</span>
