@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
+import { z } from "zod";
 import connectToDatabase from "@/lib/mongodb";
 import Note from "@/models/Note";
+import { noteSchema } from "@/lib/validations";
 
 export async function GET() {
   try {
@@ -18,10 +20,14 @@ export async function GET() {
 export async function POST(req: Request) {
   try {
     const body = await req.json();
+    const validated = noteSchema.parse(body);
     await connectToDatabase();
-    const note = await Note.create(body);
+    const note = await Note.create(validated);
     return NextResponse.json(note, { status: 201 });
-  } catch {
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json({ error: error.format() }, { status: 400 });
+    }
     return NextResponse.json(
       { error: "Failed to create note" },
       { status: 500 },

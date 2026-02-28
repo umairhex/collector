@@ -4,14 +4,14 @@ import { Button } from "@/components/ui/button";
 
 export default function NotFound() {
   return (
-    <div className="h-screen w-screen flex flex-col items-center justify-center bg-background px-4">
-      <div className="flex flex-col items-center text-center space-y-6 max-w-md">
-        <div className="p-4 bg-muted text-muted-foreground rounded-2xl">
-          <BookX className="w-12 h-12" />
+    <div className="bg-background flex h-screen w-screen flex-col items-center justify-center px-4">
+      <div className="flex max-w-md flex-col items-center space-y-6 text-center">
+        <div className="bg-muted text-muted-foreground rounded-2xl p-4">
+          <BookX className="h-12 w-12" />
         </div>
 
         <div className="space-y-2">
-          <h2 className="text-3xl font-heading font-bold text-foreground">
+          <h2 className="font-heading text-foreground text-3xl font-bold">
             Page Not Found
           </h2>
           <p className="text-muted-foreground text-sm leading-relaxed">
@@ -20,9 +20,9 @@ export default function NotFound() {
           </p>
         </div>
 
-        <Button asChild className="gap-2 mt-4">
+        <Button asChild className="mt-4 gap-2">
           <Link href="/">
-            <ArrowLeft className="w-4 h-4" />
+            <ArrowLeft className="h-4 w-4" />
             Return Home
           </Link>
         </Button>

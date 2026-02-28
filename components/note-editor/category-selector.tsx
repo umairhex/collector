@@ -33,7 +33,7 @@ export function CategorySelector({
 
   return (
     <div className="flex items-center gap-3">
-      <span className="text-sm font-medium text-muted-foreground">
+      <span className="text-muted-foreground text-sm font-medium">
         Category:
       </span>
       <Popover open={open} onOpenChange={setOpen}>
@@ -42,9 +42,9 @@ export function CategorySelector({
             variant="outline"
             role="combobox"
             aria-expanded={open}
-            className="h-8 justify-between bg-muted/30 capitalize gap-2 text-sm px-2.5 shadow-none border-border/50"
+            className="bg-muted/30 border-border/50 h-8 justify-between gap-2 px-2.5 text-sm capitalize shadow-none"
           >
-            <Hash className="w-3.5 h-3.5 text-muted-foreground" />
+            <Hash className="text-muted-foreground h-3.5 w-3.5" />
             {currentCategory || "General"}
             <ChevronDown className="ml-1 h-3 w-3 shrink-0 opacity-50" />
           </Button>
@@ -63,7 +63,7 @@ export function CategorySelector({
                       onCategoryChange(currentValue);
                       setOpen(false);
                     }}
-                    className="capitalize cursor-pointer"
+                    className="cursor-pointer capitalize"
                   >
                     <Check
                       className={`mr-2 h-4 w-4 ${

@@ -36,28 +36,28 @@ export function CategoryList({
 }: CategoryListProps) {
   return (
     <SidebarGroup>
-      <div className="flex items-center justify-between px-2 mb-2">
+      <div className="mb-2 flex items-center justify-between px-2">
         <SidebarGroupLabel className="font-heading tracking-wider uppercase">
           Categories
         </SidebarGroupLabel>
         <Button
           variant="ghost"
           size="icon"
-          className="h-6 w-6 relative top-[2px]"
+          className="relative top-[2px] h-6 w-6"
           onClick={onAddCategory}
           aria-label="Add new category"
         >
-          <Plus className="w-4 h-4" />
+          <Plus className="h-4 w-4" />
         </Button>
       </div>
       <SidebarMenu>
         {isLoading ? (
-          <div className="space-y-2 p-2 w-full">
+          <div className="w-full space-y-2 p-2">
             {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="flex items-center gap-2 p-2 rounded-md">
-                <Skeleton className="h-4 w-4 bg-primary/10" />
-                <Skeleton className="h-4 flex-1 bg-primary/10" />
-                <Skeleton className="h-4 w-6 rounded-full bg-primary/10" />
+              <div key={i} className="flex items-center gap-2 rounded-md p-2">
+                <Skeleton className="bg-primary/10 h-4 w-4" />
+                <Skeleton className="bg-primary/10 h-4 flex-1" />
+                <Skeleton className="bg-primary/10 h-4 w-6 rounded-full" />
               </div>
             ))}
           </div>
@@ -72,9 +72,9 @@ export function CategoryList({
               >
                 <div className="flex items-center gap-2">
                   {cat.id === "all" ? (
-                    <FolderOpen className="w-4 h-4" />
+                    <FolderOpen className="h-4 w-4" />
                   ) : (
-                    <Hash className="w-4 h-4" />
+                    <Hash className="h-4 w-4" />
                   )}
                   <span>{cat.name}</span>
                 </div>

@@ -37,7 +37,7 @@ export function EditorCanvas({
           onChange={(e) => onTitleChange(e.target.value)}
           role="heading"
           aria-level={1}
-          className="w-full text-5xl lg:text-7xl font-heading tracking-tight bg-transparent border-none focus:outline-none focus:ring-0 mb-6 placeholder:text-muted/50 transition-all duration-300 resize-none overflow-hidden"
+          className="font-heading placeholder:text-muted/50 mb-6 w-full resize-none overflow-hidden border-none bg-transparent text-5xl tracking-tight transition-all duration-300 focus:ring-0 focus:outline-none lg:text-7xl"
           placeholder="Untitled Note"
         />
 
@@ -47,8 +47,8 @@ export function EditorCanvas({
             categoriesList={categoriesList}
             onCategoryChange={onCategoryChange}
           />
-          <div className="h-4 w-[1px] bg-border/50" />
-          <span className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold">
+          <div className="bg-border/50 h-4 w-[1px]" />
+          <span className="text-muted-foreground text-[10px] font-semibold tracking-widest uppercase">
             Last edited{" "}
             {new Date(updatedAt).toLocaleTimeString([], {
               hour: "2-digit",
@@ -58,18 +58,17 @@ export function EditorCanvas({
         </div>
       </div>
 
-      <div className="relative group">
+      <div className="group relative">
         <Textarea
           value={content}
           onChange={(e) => onContentChange(e.target.value)}
           spellCheck={false}
           data-gramm="false"
-          className="flex-1 min-h-[500px] w-full bg-transparent border-none focus-visible:ring-0 resize-none text-lg leading-relaxed md:text-xl shadow-none px-0 font-sans placeholder:text-muted/20 pb-32 transition-colors duration-300 px-3"
+          className="placeholder:text-muted/20 min-h-[500px] w-full flex-1 resize-none border-none bg-transparent px-0 px-3 pb-32 font-sans text-lg leading-relaxed shadow-none transition-colors duration-300 focus-visible:ring-0 md:text-xl"
           placeholder="Start writing something extraordinary..."
         />
 
-        {/* Subtle visual guide Line */}
-        <div className="absolute left-[-1.5rem] top-0 bottom-0 w-[1px] bg-gradient-to-b from-primary/20 via-primary/5 to-transparent hidden lg:block" />
+        <div className="from-primary/20 via-primary/5 absolute top-0 bottom-0 left-[-1.5rem] hidden w-[1px] bg-gradient-to-b to-transparent lg:block" />
       </div>
     </div>
   );

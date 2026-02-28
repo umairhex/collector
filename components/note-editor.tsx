@@ -5,6 +5,8 @@ import { Loader2 } from "lucide-react";
 import { useQueryState } from "nuqs";
 import { useDebouncedCallback } from "use-debounce";
 import { toast } from "sonner";
+import { z } from "zod";
+import { updateNoteSchema } from "@/lib/validations";
 
 import {
   useNotes,
@@ -64,12 +66,20 @@ export function NoteEditor() {
   const debouncedUpdate = useDebouncedCallback(
     (updates: { title?: string; content?: string; category?: string }) => {
       if (!activeNoteId) return;
-      updateNote.mutate(
-        { id: activeNoteId, ...updates },
-        {
-          onError: () => toast.error("Failed to sync changes"),
-        },
-      );
+
+      try {
+        const validated = updateNoteSchema.parse(updates);
+        updateNote.mutate(
+          { id: activeNoteId, ...validated },
+          {
+            onError: () => toast.error("Failed to sync changes"),
+          },
+        );
+      } catch (error) {
+        if (error instanceof z.ZodError) {
+          toast.error(error.issues[0].message);
+        }
+      }
     },
     500,
   );
@@ -116,18 +126,18 @@ export function NoteEditor() {
   };
 
   return (
-    <div className="flex flex-col h-full bg-background flex-1 overflow-hidden relative">
+    <div className="bg-background relative flex h-full flex-1 flex-col overflow-hidden">
       <EditorHeader searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
 
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-primary/5 via-transparent to-transparent pointer-events-none" />
+      <div className="from-primary/5 pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] via-transparent to-transparent" />
 
-      <div className="flex-1 overflow-y-auto relative scroll-smooth selection:bg-primary/20">
-        <div className="flex flex-col p-6 lg:px-16 lg:py-12 max-w-4xl w-full mx-auto min-h-[calc(100vh-64px)]">
+      <div className="selection:bg-primary/20 relative flex-1 overflow-y-auto scroll-smooth">
+        <div className="mx-auto flex min-h-[calc(100vh-64px)] w-full max-w-4xl flex-col p-6 lg:px-16 lg:py-12">
           {isLoadingNotes ? (
-            <div className="flex-1 flex items-center justify-center">
+            <div className="flex flex-1 items-center justify-center">
               <div className="flex flex-col items-center gap-4">
-                <Loader2 className="w-10 h-10 animate-spin text-primary opacity-50" />
-                <p className="text-sm font-heading tracking-widest text-muted-foreground uppercase">
+                <Loader2 className="text-primary h-10 w-10 animate-spin opacity-50" />
+                <p className="font-heading text-muted-foreground text-sm tracking-widest uppercase">
                   Loading Canvas
                 </p>
               </div>
@@ -139,7 +149,7 @@ export function NoteEditor() {
               <SearchInput
                 value={searchQuery}
                 onChange={setSearchQuery}
-                className="mb-8 md:hidden rounded-2xl shadow-sm border border-border/50"
+                className="border-border/50 mb-8 rounded-2xl border shadow-sm md:hidden"
               />
 
               <EditorCanvas

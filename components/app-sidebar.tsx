@@ -96,10 +96,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
     <>
       <Sidebar {...props}>
-        <SidebarHeader className="border-b border-border py-4 px-4 bg-muted/20">
-          <div className="flex items-center gap-3 font-heading font-semibold text-2xl tracking-wide">
-            <div className="p-2 bg-primary text-primary-foreground rounded-lg shadow-sm">
-              <BookOpen className="w-5 h-5" />
+        <SidebarHeader className="border-border bg-muted/20 border-b px-4 py-4">
+          <div className="font-heading flex items-center gap-3 text-2xl font-semibold tracking-wide">
+            <div className="bg-primary text-primary-foreground rounded-lg p-2 shadow-sm">
+              <BookOpen className="h-5 w-5" />
             </div>
             Collector
           </div>

@@ -5,9 +5,6 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-/**
- * Shared date formatter (DRY-002)
- */
 export function formatDate(isoString: string | undefined) {
   if (!isoString) return "Today";
   const d = new Date(isoString);
@@ -19,7 +16,4 @@ export function formatDate(isoString: string | undefined) {
   }).format(d);
 }
 
-/**
- * Shared category configuration (DRY-005)
- */
 export const DEFAULT_CATEGORIES = ["Ideas", "Work", "General"] as const;

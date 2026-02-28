@@ -20,11 +20,11 @@ export function SearchInput({
 }: SearchInputProps) {
   return (
     <div className={cn("relative w-full", className)}>
-      <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+      <Search className="text-muted-foreground absolute top-1/2 left-2.5 h-4 w-4 -translate-y-1/2" />
       <Input
         type="text"
         placeholder={placeholder}
-        className="pl-8 bg-muted/50 border-none h-9 focus-visible:ring-1 w-full"
+        className="bg-muted/50 h-9 w-full border-none pl-8 focus-visible:ring-1"
         value={value}
         onChange={(e) => onChange(e.target.value || null)}
       />

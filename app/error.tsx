@@ -15,14 +15,14 @@ export default function GlobalError({
   }, [error]);
 
   return (
-    <div className="h-screen w-screen flex flex-col items-center justify-center bg-background px-4">
-      <div className="flex flex-col items-center text-center space-y-6 max-w-md border border-destructive/20 bg-destructive/5 rounded-3xl p-8">
-        <div className="p-4 bg-destructive text-destructive-foreground rounded-full shadow-sm">
-          <AlertTriangle className="w-8 h-8" />
+    <div className="bg-background flex h-screen w-screen flex-col items-center justify-center px-4">
+      <div className="border-destructive/20 bg-destructive/5 flex max-w-md flex-col items-center space-y-6 rounded-3xl border p-8 text-center">
+        <div className="bg-destructive text-destructive-foreground rounded-full p-4 shadow-sm">
+          <AlertTriangle className="h-8 w-8" />
         </div>
 
         <div className="space-y-2">
-          <h2 className="text-2xl font-heading font-black text-foreground">
+          <h2 className="font-heading text-foreground text-2xl font-black">
             Something went wrong!
           </h2>
           <p className="text-muted-foreground text-sm">
@@ -34,9 +34,9 @@ export default function GlobalError({
         <Button
           onClick={() => window.location.reload()}
           variant="outline"
-          className="gap-2 font-medium hover:bg-destructive hover:text-destructive-foreground transition-colors"
+          className="hover:bg-destructive hover:text-destructive-foreground gap-2 font-medium transition-colors"
         >
-          <RefreshCcw className="w-4 h-4" />
+          <RefreshCcw className="h-4 w-4" />
           Attempt Recovery
         </Button>
       </div>

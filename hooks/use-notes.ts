@@ -19,13 +19,10 @@ export function useNotes() {
   return useQuery<Note[]>({
     queryKey: ["notes"],
     queryFn: fetchNotes,
-    staleTime: 1000 * 60 * 5, // 5 minutes
+    staleTime: 1000 * 60 * 5,
   });
 }
 
-/**
- * Custom hook to derive categories from notes
- */
 export function useCategories() {
   return useQuery<Note[], Error, { id: string; name: string; count: number }[]>(
     {
@@ -58,9 +55,6 @@ export function useCategories() {
   );
 }
 
-/**
- * Custom hook to derive simple categories list
- */
 export function useCategoriesList() {
   return useQuery<Note[], Error, string[]>({
     queryKey: ["notes"],
@@ -118,9 +112,7 @@ export function useCreateNote() {
         queryClient.setQueryData(["notes"], context.previousNotes);
       }
     },
-    onSettled: () => {
-      // Intentionally removed full invalidation to prevent redundant re-fetches (FLOW-004)
-    },
+    onSettled: () => {},
   });
 }
 
@@ -162,9 +154,7 @@ export function useUpdateNote() {
         queryClient.setQueryData(["notes"], context.previousNotes);
       }
     },
-    onSettled: () => {
-      // Intentionally removed full invalidation to prevent redundant re-fetches (FLOW-004)
-    },
+    onSettled: () => {},
   });
 }
 
@@ -197,8 +187,6 @@ export function useDeleteNote() {
         queryClient.setQueryData(["notes"], context.previousNotes);
       }
     },
-    onSettled: () => {
-      // Intentionally removed full invalidation to prevent redundant re-fetches (FLOW-004)
-    },
+    onSettled: () => {},
   });
 }

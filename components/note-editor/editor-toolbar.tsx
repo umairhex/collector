@@ -37,19 +37,19 @@ export const EditorToolbar = React.memo(function EditorToolbar({
   onPaste,
 }: EditorToolbarProps) {
   return (
-    <div className="mt-12 sticky bottom-8 left-0 right-0 z-10 flex items-center justify-center pointer-events-none">
-      <div className="flex items-center gap-2 p-1.5 bg-background/60 backdrop-blur-xl border border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.12)] rounded-2xl pointer-events-auto animate-in fade-in slide-in-from-bottom-8 duration-700">
+    <div className="pointer-events-none sticky right-0 bottom-8 left-0 z-10 mt-12 flex items-center justify-center">
+      <div className="bg-background/60 animate-in fade-in slide-in-from-bottom-8 pointer-events-auto flex items-center gap-2 rounded-2xl border border-white/10 p-1.5 shadow-[0_8px_32px_rgba(0,0,0,0.12)] backdrop-blur-xl duration-700">
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
               variant="ghost"
               size="sm"
-              className="h-10 px-4 gap-2 rounded-xl hover:bg-primary/10 hover:text-primary transition-all duration-300"
+              className="hover:bg-primary/10 hover:text-primary h-10 gap-2 rounded-xl px-4 transition-all duration-300"
               onClick={onPaste}
               aria-label="Paste from clipboard"
             >
-              <ClipboardPaste className="w-4 h-4" />
-              <span className="text-xs font-semibold uppercase tracking-wider hidden sm:inline">
+              <ClipboardPaste className="h-4 w-4" />
+              <span className="hidden text-xs font-semibold tracking-wider uppercase sm:inline">
                 Paste
               </span>
             </Button>
@@ -62,23 +62,23 @@ export const EditorToolbar = React.memo(function EditorToolbar({
           </TooltipContent>
         </Tooltip>
 
-        <div className="w-[1px] h-6 bg-border/30 mx-1" />
+        <div className="bg-border/30 mx-1 h-6 w-[1px]" />
 
-        <div className="flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] uppercase font-bold tracking-[0.2em] min-w-[100px] justify-center text-muted-foreground/80">
+        <div className="text-muted-foreground/80 flex min-w-[100px] items-center justify-center gap-2 rounded-xl px-4 py-2 text-[10px] font-bold tracking-[0.2em] uppercase">
           {isUpdating ? (
             <div className="flex items-center gap-2">
-              <Loader2 className="w-3 h-3 animate-spin text-primary" />
+              <Loader2 className="text-primary h-3 w-3 animate-spin" />
               <span>Saving...</span>
             </div>
           ) : (
-            <div className="flex items-center gap-2 text-primary/80">
-              <CheckCircle2 className="w-3 h-3" />
+            <div className="text-primary/80 flex items-center gap-2">
+              <CheckCircle2 className="h-3 w-3" />
               <span>Securely Synced</span>
             </div>
           )}
         </div>
 
-        <div className="w-[1px] h-6 bg-border/30 mx-1" />
+        <div className="bg-border/30 mx-1 h-6 w-[1px]" />
 
         <AlertDialog>
           <Tooltip>
@@ -87,11 +87,11 @@ export const EditorToolbar = React.memo(function EditorToolbar({
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-10 px-4 gap-2 rounded-xl text-destructive hover:bg-destructive/10 hover:text-destructive transition-all duration-300"
+                  className="text-destructive hover:bg-destructive/10 hover:text-destructive h-10 gap-2 rounded-xl px-4 transition-all duration-300"
                   aria-label="Delete note"
                 >
-                  <Trash2 className="w-4 h-4" />
-                  <span className="text-xs font-semibold uppercase tracking-wider hidden sm:inline">
+                  <Trash2 className="h-4 w-4" />
+                  <span className="hidden text-xs font-semibold tracking-wider uppercase sm:inline">
                     Discard
                   </span>
                 </Button>
@@ -104,19 +104,19 @@ export const EditorToolbar = React.memo(function EditorToolbar({
               Delete Forever
             </TooltipContent>
           </Tooltip>
-          <AlertDialogContent className="rounded-3xl border-border/50 bg-background/95 backdrop-blur-xl">
+          <AlertDialogContent className="border-border/50 bg-background/95 rounded-3xl backdrop-blur-xl">
             <AlertDialogHeader>
               <AlertDialogTitle className="font-heading text-3xl tracking-tight">
                 Delete this masterpiece?
               </AlertDialogTitle>
-              <AlertDialogDescription className="text-base text-muted-foreground font-sans">
+              <AlertDialogDescription className="text-muted-foreground font-sans text-base">
                 This action is irreversible. The note &quot;
                 {noteTitle || "Untitled"}&quot; will be permanently removed from
                 your digital collection.
               </AlertDialogDescription>
             </AlertDialogHeader>
-            <AlertDialogFooter className="gap-2 sm:gap-0 mt-4">
-              <AlertDialogCancel className="rounded-xl border-border/50">
+            <AlertDialogFooter className="mt-4 gap-2 sm:gap-0">
+              <AlertDialogCancel className="border-border/50 rounded-xl">
                 Preserve Note
               </AlertDialogCancel>
               <AlertDialogAction
@@ -124,7 +124,7 @@ export const EditorToolbar = React.memo(function EditorToolbar({
                 className="bg-destructive hover:bg-destructive/90 text-destructive-foreground rounded-xl"
               >
                 {isDeleting ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (
                   "Confirm Deletion"
                 )}

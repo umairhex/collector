@@ -14,6 +14,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
+import { categorySchema } from "@/lib/validations";
+import { toast } from "sonner";
+import { z } from "zod";
+
 interface AddCategoryDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
@@ -31,17 +35,24 @@ export function AddCategoryDialog({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim()) return;
-    onSubmit(name.trim());
-    setName("");
+
+    try {
+      const validated = categorySchema.parse({ name: name.trim() });
+      onSubmit(validated.name);
+      setName("");
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        toast.error(error.issues[0].message);
+      }
+    }
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px] rounded-3xl">
+      <DialogContent className="rounded-3xl sm:max-w-[425px]">
         <form onSubmit={handleSubmit}>
           <DialogHeader>
-            <DialogTitle className="text-2xl font-heading tracking-wide">
+            <DialogTitle className="font-heading text-2xl tracking-wide">
               New Category
             </DialogTitle>
             <DialogDescription>
@@ -58,7 +69,7 @@ export function AddCategoryDialog({
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 autoFocus
-                className="rounded-xl border-border/50"
+                className="border-border/50 rounded-xl"
               />
             </div>
           </div>
@@ -76,7 +87,7 @@ export function AddCategoryDialog({
               disabled={!name.trim() || isPending}
               className="rounded-xl px-6"
             >
-              {isPending && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
+              {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Create Category
             </Button>
           </DialogFooter>

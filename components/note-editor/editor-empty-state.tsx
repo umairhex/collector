@@ -12,16 +12,16 @@ import {
 
 export function EditorEmptyState() {
   return (
-    <div className="flex-1 flex flex-col items-center justify-center -translate-y-16">
+    <div className="flex flex-1 -translate-y-16 flex-col items-center justify-center">
       <Empty>
         <EmptyHeader>
           <EmptyMedia variant="icon">
-            <Search className="w-6 h-6 opacity-50" />
+            <Search className="h-6 w-6 opacity-50" />
           </EmptyMedia>
-          <EmptyTitle className="text-2xl font-heading font-semibold">
+          <EmptyTitle className="font-heading text-2xl font-semibold">
             No Note Selected
           </EmptyTitle>
-          <EmptyDescription className="max-w-[250px] mx-auto">
+          <EmptyDescription className="mx-auto max-w-[250px]">
             Select a note from the sidebar or click the plus to create a new
             one.
           </EmptyDescription>

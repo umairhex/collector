@@ -31,7 +31,7 @@ export const EditorHeader = React.memo(function EditorHeader({
   }, []);
 
   return (
-    <header className="flex h-16 shrink-0 items-center justify-between gap-2 border-b border-border bg-background px-4">
+    <header className="border-border bg-background flex h-16 shrink-0 items-center justify-between gap-2 border-b px-4">
       <div className="flex items-center gap-2">
         <SidebarTrigger className="-ml-1" />
         <Separator orientation="vertical" className="mr-2 h-4" />
@@ -39,7 +39,7 @@ export const EditorHeader = React.memo(function EditorHeader({
         <SearchInput
           value={searchQuery}
           onChange={setSearchQuery}
-          className="max-w-sm lg:max-w-md hidden md:block"
+          className="hidden max-w-sm md:block lg:max-w-md"
         />
       </div>
 
@@ -54,9 +54,9 @@ export const EditorHeader = React.memo(function EditorHeader({
               aria-label="Toggle theme"
             >
               {theme === "dark" ? (
-                <Sun className="w-5 h-5" />
+                <Sun className="h-5 w-5" />
               ) : (
-                <Moon className="w-5 h-5" />
+                <Moon className="h-5 w-5" />
               )}
             </Button>
           </TooltipTrigger>

@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 import { z } from "zod";
 import connectToDatabase from "@/lib/mongodb";
 import Note from "@/models/Note";
+import { updateNoteSchema } from "@/lib/validations";
 
 export async function PATCH(
   req: Request,
@@ -17,15 +18,9 @@ export async function PATCH(
 
     await connectToDatabase();
 
-    const updateSchema = z.object({
-      title: z.string().optional(),
-      content: z.string().optional(),
-      category: z.string().optional(),
-    });
+    const validated = updateNoteSchema.parse(body);
 
-    updateSchema.parse(body);
-
-    const updatedNote = await Note.findByIdAndUpdate(id, body, {
+    const updatedNote = await Note.findByIdAndUpdate(id, validated, {
       new: true,
       runValidators: true,
     }).lean();
@@ -35,7 +30,10 @@ export async function PATCH(
     }
 
     return NextResponse.json(updatedNote);
-  } catch {
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json({ error: error.format() }, { status: 400 });
+    }
     return NextResponse.json(
       { error: "Failed to update note" },
       { status: 500 },
