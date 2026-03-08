@@ -263,7 +263,7 @@ export const EditorToolbar = React.memo(function EditorToolbar({
         </Tooltip>
         <AlertDialogContent className="border-border/50 bg-background/95 rounded-3xl backdrop-blur-xl">
           <AlertDialogHeader>
-            <AlertDialogTitle className="font-heading text-3xl tracking-tight">
+            <AlertDialogTitle className="font-heading text-3xl tracking-widest">
               Delete this masterpiece?
             </AlertDialogTitle>
             <AlertDialogDescription className="text-muted-foreground font-sans text-base">
@@ -272,7 +272,7 @@ export const EditorToolbar = React.memo(function EditorToolbar({
               your digital collection.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter className="mt-4 gap-2 sm:gap-0">
+          <AlertDialogFooter className="mt-4 gap-2">
             <AlertDialogCancel className="border-border/50 rounded-xl">
               Preserve Note
             </AlertDialogCancel>
