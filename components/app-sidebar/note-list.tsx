@@ -45,7 +45,7 @@ export function NoteList({
   return (
     <SidebarGroup className="mt-4 flex-1">
       <div className="mb-2 flex items-center justify-between px-2">
-        <SidebarGroupLabel className="font-heading tracking-wider uppercase">
+        <SidebarGroupLabel className="font-heading tracking-widest uppercase">
           Notes
         </SidebarGroupLabel>
         <Tooltip>

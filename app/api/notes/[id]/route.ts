@@ -21,7 +21,7 @@ export async function PATCH(
     const validated = updateNoteSchema.parse(body);
 
     const updatedNote = await Note.findByIdAndUpdate(id, validated, {
-      new: true,
+      returnDocument: "after",
       runValidators: true,
     }).lean();
 

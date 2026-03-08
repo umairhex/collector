@@ -44,7 +44,7 @@ export function CategoryList({
   return (
     <SidebarGroup>
       <div className="mb-2 flex items-center justify-between px-2">
-        <SidebarGroupLabel className="font-heading tracking-wider uppercase">
+        <SidebarGroupLabel className="font-heading tracking-widest uppercase">
           Categories
         </SidebarGroupLabel>
         <Tooltip>

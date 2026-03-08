@@ -22,7 +22,7 @@ export default function GlobalError({
         </div>
 
         <div className="space-y-2">
-          <h2 className="font-heading text-foreground text-2xl font-black">
+          <h2 className="font-heading text-foreground text-2xl font-black tracking-widest">
             Something went wrong!
           </h2>
           <p className="text-muted-foreground text-sm">

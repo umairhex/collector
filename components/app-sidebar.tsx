@@ -25,6 +25,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     defaultValue: "",
   });
 
+  const [mounted, setMounted] = React.useState(false);
+
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const { data: notes, isLoading } = useNotes();
   const { data: categories = [{ id: "all", name: "All Notes", count: 0 }] } =
     useCategories();
@@ -132,23 +138,27 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </SidebarHeader>
 
         <SidebarContent className="bg-muted/10">
-          <CategoryList
-            categories={categories}
-            activeCategory={activeCategory}
-            onCategorySelect={setActiveCategory}
-            onAddCategory={() => setIsCategoryDialogOpen(true)}
-            isLoading={isLoading}
-          />
+          {mounted ? (
+            <>
+              <CategoryList
+                categories={categories}
+                activeCategory={activeCategory}
+                onCategorySelect={setActiveCategory}
+                onAddCategory={() => setIsCategoryDialogOpen(true)}
+                isLoading={isLoading}
+              />
 
-          <NoteList
-            notes={filteredNotes}
-            activeNoteId={activeNoteId}
-            onNoteSelect={setActiveNoteId}
-            onCreateNote={handleCreateNote}
-            isCreating={createNote.isPending}
-            isLoading={isLoading}
-            searchQuery={searchQuery}
-          />
+              <NoteList
+                notes={filteredNotes}
+                activeNoteId={activeNoteId}
+                onNoteSelect={setActiveNoteId}
+                onCreateNote={handleCreateNote}
+                isCreating={createNote.isPending}
+                isLoading={isLoading}
+                searchQuery={searchQuery}
+              />
+            </>
+          ) : null}
         </SidebarContent>
         <SidebarRail />
       </Sidebar>
