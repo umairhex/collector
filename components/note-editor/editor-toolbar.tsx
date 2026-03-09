@@ -4,15 +4,17 @@ import * as React from "react";
 import {
   ClipboardPaste,
   Trash2,
-  Loader2,
-  CheckCircle2,
   RefreshCcw,
+  CheckCircle2,
+  SaveAll,
   Save,
   Share2,
   Download,
+  Copy,
+  Loader2,
+  Globe,
 } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -37,6 +39,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
+import { useIsMobile } from "@/hooks/use-mobile";
+import { ToolbarButton } from "./toolbar-button";
+
 interface EditorToolbarProps {
   noteTitle: string | undefined;
   isUpdating: boolean;
@@ -48,6 +53,9 @@ interface EditorToolbarProps {
   onManualSave: () => void;
   onShare: () => void;
   onExport: (format: "txt" | "md") => void;
+  onCopy: () => void;
+  isShareable: boolean;
+  onToggleShare: () => void;
 }
 
 export const EditorToolbar = React.memo(function EditorToolbar({
@@ -61,93 +69,58 @@ export const EditorToolbar = React.memo(function EditorToolbar({
   onManualSave,
   onShare,
   onExport,
+  onCopy,
+  isShareable,
+  onToggleShare,
 }: EditorToolbarProps) {
+  const isMobile = useIsMobile();
+
   return (
-    <div className="bg-background/60 animate-in fade-in slide-in-from-top-4 border-border flex w-fit items-center gap-1.5 rounded-2xl border p-1.5 shadow-sm backdrop-blur-xl duration-700">
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button
-            variant="ghost"
-            size="sm"
-            className={`h-8 w-8 rounded-xl p-0 transition-all duration-300 ${isAutoSave ? "text-primary hover:bg-primary/10" : "text-muted-foreground hover:bg-muted"}`}
-            onClick={onToggleAutoSave}
-            aria-label="Toggle Auto Save"
-          >
-            <RefreshCcw className="h-4 w-4" />
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent
-          side="top"
-          className="flex items-center gap-2 border-none bg-black/80 text-[10px] font-bold tracking-wider text-white backdrop-blur-md"
-        >
-          <span>{isAutoSave ? "AUTO SAVE: ON" : "AUTO SAVE: OFF"}</span>
-        </TooltipContent>
-      </Tooltip>
+    <div
+      className={`bg-background/60 animate-in fade-in slide-in-from-top-4 border-border flex max-w-full flex-wrap items-center justify-center border shadow-sm backdrop-blur-xl duration-700 sm:w-fit ${isMobile ? "gap-0.5 rounded-xl p-1" : "gap-1.5 rounded-2xl p-1.5"}`}
+    >
+      <ToolbarButton
+        icon={SaveAll}
+        label={isAutoSave ? "Auto Save: On" : "Auto Save: Off"}
+        active={isAutoSave}
+        onClick={onToggleAutoSave}
+      />
 
       {!isAutoSave && (
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="hover:bg-primary/10 text-primary h-8 w-8 rounded-xl p-0 transition-all duration-300"
-              onClick={onManualSave}
-              aria-label="Manual Save"
-            >
-              {isUpdating ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Save className="h-4 w-4" />
-              )}
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent
-            side="top"
-            className="flex items-center gap-2 border-none bg-black/80 text-[10px] font-bold tracking-wider text-white backdrop-blur-md"
-          >
-            <span>MANUAL SAVE</span>
-          </TooltipContent>
-        </Tooltip>
+        <ToolbarButton
+          icon={Save}
+          label="Save Note"
+          onClick={onManualSave}
+          isLoading={isUpdating}
+          loaderIcon={RefreshCcw}
+        />
       )}
 
-      <div className="bg-border/30 mx-1 h-5 w-px" />
-
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="hover:bg-primary/10 hover:text-primary h-8 w-8 rounded-xl p-0 transition-all duration-300"
+      {!isMobile && (
+        <>
+          <div className="bg-border/30 mx-1 hidden h-5 w-px sm:block" />
+          <ToolbarButton
+            icon={ClipboardPaste}
+            label="Paste"
+            shortcut="ALT V"
             onClick={onPaste}
-            aria-label="Paste from clipboard"
-          >
-            <ClipboardPaste className="h-4 w-4" />
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent
-          side="top"
-          className="flex items-center gap-2 border-none bg-black/80 text-[10px] font-bold tracking-wider text-white backdrop-blur-md"
-        >
-          <span>INSTANT PASTE</span>
-          <kbd className="rounded bg-white/10 px-1.5 py-0.5 font-mono opacity-60">
-            ALT V
-          </kbd>
-        </TooltipContent>
-      </Tooltip>
+          />
+        </>
+      )}
 
-      <div className="bg-border/30 mx-1 h-5 w-px" />
+      <div className="bg-border/30 mx-1 hidden h-5 w-px sm:block" />
 
       <div className="flex h-8 w-8 items-center justify-center">
         {isUpdating ? (
           <Tooltip>
             <TooltipTrigger>
-              <Loader2 className="text-primary h-4 w-4 animate-spin" />
+              <RefreshCcw className="text-primary h-4 w-4 animate-spin" />
             </TooltipTrigger>
             <TooltipContent
               side="top"
-              className="text-[10px] font-bold tracking-wider"
+              className="hidden text-[10px] tracking-wider md:block"
             >
-              SYNCING...
+              Syncing...
             </TooltipContent>
           </Tooltip>
         ) : typeof navigator !== "undefined" && !navigator.onLine ? (
@@ -157,9 +130,9 @@ export const EditorToolbar = React.memo(function EditorToolbar({
             </TooltipTrigger>
             <TooltipContent
               side="top"
-              className="text-[10px] font-bold tracking-wider"
+              className="hidden text-[10px] tracking-wider md:block"
             >
-              OFFLINE READY
+              Working Offline
             </TooltipContent>
           </Tooltip>
         ) : (
@@ -169,112 +142,87 @@ export const EditorToolbar = React.memo(function EditorToolbar({
             </TooltipTrigger>
             <TooltipContent
               side="top"
-              className="flex items-center gap-2 border-none bg-black/80 text-[10px] font-bold tracking-wider text-white backdrop-blur-md"
+              className="hidden items-center gap-2 border-none bg-black/80 text-[10px] tracking-wider text-white backdrop-blur-md md:flex"
             >
-              {" "}
-              CLOUD SYNCED{" "}
+              All Saved
             </TooltipContent>
           </Tooltip>
         )}
       </div>
 
-      <div className="bg-border/30 mx-1 h-5 w-px" />
+      <div className="bg-border/30 mx-1 hidden h-5 w-px sm:block" />
 
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="hover:bg-primary/10 hover:text-primary h-8 w-8 rounded-xl p-0 transition-all duration-300"
+      <ToolbarButton icon={Copy} label="Copy Note" onClick={onCopy} />
+
+      <ToolbarButton
+        icon={Globe}
+        label={isShareable ? "Sharing: On" : "Sharing: Off"}
+        active={isShareable}
+        onClick={onToggleShare}
+      />
+
+      <div className="bg-border/30 mx-1 hidden h-5 w-px sm:block" />
+
+      {!isMobile && (
+        <>
+          <ToolbarButton
+            icon={Share2}
+            label={isShareable ? "Copy Link" : "Enable sharing first"}
+            disabled={!isShareable}
             onClick={onShare}
-            aria-label="Share note"
-          >
-            <Share2 className="h-4 w-4" />
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent
-          side="top"
-          className="flex items-center gap-2 border-none bg-black/80 text-[10px] font-bold tracking-wider text-white backdrop-blur-md"
-        >
-          <span>COPY SHARE LINK</span>
-        </TooltipContent>
-      </Tooltip>
+          />
 
-      <DropdownMenu>
-        <Tooltip>
-          <TooltipTrigger asChild>
+          <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="hover:bg-primary/10 hover:text-primary h-8 w-8 rounded-xl p-0 transition-all duration-300"
-                aria-label="Download options"
-              >
-                <Download className="h-4 w-4" />
-              </Button>
+              <div>
+                <ToolbarButton icon={Download} label="EXPORT" />
+              </div>
             </DropdownMenuTrigger>
-          </TooltipTrigger>
-          <TooltipContent
-            side="top"
-            className="flex items-center gap-2 border-none bg-black/80 text-[10px] font-bold tracking-wider text-white backdrop-blur-md"
-          >
-            <span>EXPORT</span>
-          </TooltipContent>
-        </Tooltip>
-        <DropdownMenuContent align="end" className="w-40 rounded-xl">
-          <DropdownMenuItem
-            onClick={() => onExport("md")}
-            className="cursor-pointer rounded-lg"
-          >
-            Export as Markdown (.md)
-          </DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem
-            onClick={() => onExport("txt")}
-            className="cursor-pointer rounded-lg"
-          >
-            Export as Plain Text (.txt)
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+            <DropdownMenuContent align="end" className="w-40 rounded-xl">
+              <DropdownMenuItem
+                onClick={() => onExport("md")}
+                className="cursor-pointer rounded-lg"
+              >
+                Export as Markdown (.md)
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={() => onExport("txt")}
+                className="cursor-pointer rounded-lg"
+              >
+                Export as Plain Text (.txt)
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </>
+      )}
 
-      <div className="bg-border/30 mx-1 h-5 w-px" />
+      <div className="bg-border/30 mx-1 hidden h-5 w-px sm:block" />
 
       <AlertDialog>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <AlertDialogTrigger asChild>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-destructive hover:bg-destructive/10 hover:text-destructive h-8 w-8 rounded-xl p-0 transition-all duration-300"
-                aria-label="Delete note"
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
-            </AlertDialogTrigger>
-          </TooltipTrigger>
-          <TooltipContent
-            side="top"
-            className="bg-destructive text-destructive-foreground border-transparent text-[10px] font-bold tracking-wider"
-          >
-            DISCARD
-          </TooltipContent>
-        </Tooltip>
+        <AlertDialogTrigger asChild>
+          <div>
+            <ToolbarButton
+              icon={Trash2}
+              label="Delete"
+              variant="destructive"
+              className="hover:bg-destructive/10"
+            />
+          </div>
+        </AlertDialogTrigger>
         <AlertDialogContent className="border-border/50 bg-background/95 rounded-3xl backdrop-blur-xl">
           <AlertDialogHeader>
             <AlertDialogTitle className="font-heading text-3xl tracking-widest">
-              Delete this masterpiece?
+              Delete this note?
             </AlertDialogTitle>
             <AlertDialogDescription className="text-muted-foreground font-sans text-base">
               This action is irreversible. The note &quot;
-              {noteTitle || "Untitled"}&quot; will be permanently removed from
-              your digital collection.
+              {noteTitle || "Untitled"}&quot; will be permanently deleted.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="mt-4 gap-2">
             <AlertDialogCancel className="border-border/50 rounded-xl">
-              Preserve Note
+              Cancel
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={onDelete}
@@ -283,7 +231,7 @@ export const EditorToolbar = React.memo(function EditorToolbar({
               {isDeleting ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
-                "Confirm Deletion"
+                "Delete Note"
               )}
             </AlertDialogAction>
           </AlertDialogFooter>

@@ -1,17 +1,16 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { fetchClient as fetch } from "@/lib/fetch-client";
+import * as React from "react";
+import { Note, Category, DisplayCategory } from "@/types";
+import { DEFAULT_CATEGORIES } from "@/lib/utils";
 
-export interface Note {
-  _id: string;
-  title: string;
-  content: string;
-  category: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-const fetchNotes = async () => {
+const fetchNotes = async (): Promise<Note[]> => {
   const response = await fetch("/api/notes");
-  if (!response.ok) throw new Error("Failed to fetch notes");
+  return response.json();
+};
+
+const fetchCategories = async (): Promise<Category[]> => {
+  const response = await fetch("/api/categories");
   return response.json();
 };
 
@@ -24,54 +23,141 @@ export function useNotes() {
 }
 
 export function useCategories() {
-  return useQuery<Note[], Error, { id: string; name: string; count: number }[]>(
-    {
-      queryKey: ["notes"],
-      queryFn: fetchNotes,
-      staleTime: 1000 * 60 * 5,
-      select: (notes) => {
-        if (!notes) return [{ id: "all", name: "All Notes", count: 0 }];
+  const { data: notes } = useNotes();
+  const categoriesQuery = useQuery<Category[]>({
+    queryKey: ["categories"],
+    queryFn: fetchCategories,
+    staleTime: 1000 * 60 * 5,
+  });
 
-        const catMap = new Map<string, number>();
-        notes.forEach((note) => {
-          const cat = note.category || "General";
-          catMap.set(cat, (catMap.get(cat) || 0) + 1);
-        });
+  return React.useMemo(() => {
+    const categories = categoriesQuery.data || [];
+    const catMap = new Map<string, number>();
 
-        const dynamicCats = Array.from(catMap.entries()).map(
-          ([name, count]) => ({
+    notes?.forEach((note) => {
+      const cat = note.category || "General";
+      catMap.set(cat, (catMap.get(cat) || 0) + 1);
+    });
+
+    const displayCategories: DisplayCategory[] =
+      categories.length > 0
+        ? categories.map((c) => ({
+            id: c.name.toLowerCase(),
+            name: c.name,
+            count: catMap.get(c.name) || 0,
+            _id: c._id,
+          }))
+        : DEFAULT_CATEGORIES.map((name) => ({
             id: name.toLowerCase(),
             name,
-            count,
-          }),
-        );
+            count: catMap.get(name) || 0,
+          }));
 
-        return [
-          { id: "all", name: "All Notes", count: notes.length },
-          ...dynamicCats.sort((a, b) => a.name.localeCompare(b.name)),
-        ];
-      },
-    },
-  );
+    if (
+      categories.length > 0 &&
+      !displayCategories.some((c) => c.name === "General")
+    ) {
+      displayCategories.push({
+        id: "general",
+        name: "General",
+        count: catMap.get("General") || 0,
+      });
+    }
+
+    const sortedCategories = [
+      { id: "all", name: "All Notes", count: notes?.length || 0 },
+      ...displayCategories.sort((a, b) => a.name.localeCompare(b.name)),
+    ];
+
+    return {
+      ...categoriesQuery,
+      data: sortedCategories,
+    };
+  }, [categoriesQuery, notes]);
 }
 
-export function useCategoriesList() {
-  return useQuery<Note[], Error, string[]>({
-    queryKey: ["notes"],
-    queryFn: fetchNotes,
-    staleTime: 1000 * 60 * 5,
-    select: (notes) => {
-      if (!notes) return ["Ideas", "Work", "General"];
-      const cats = new Set(notes.map((n) => n.category || "General"));
-      if (!cats.has("Ideas")) cats.add("Ideas");
-      if (!cats.has("Work")) cats.add("Work");
-      if (!cats.has("General")) cats.add("General");
-      return Array.from(cats).sort();
+export { type Note, type Category, type DisplayCategory } from "@/types";
+
+export function useFilteredNotes(
+  activeCategory: string,
+  searchQuery: string = "",
+) {
+  const { data: notes, ...queryInfo } = useNotes();
+
+  const filteredNotes = React.useMemo(() => {
+    if (!notes) return [];
+
+    let result = notes;
+
+    if (activeCategory !== "all") {
+      result = result.filter(
+        (n) => (n.category || "General").toLowerCase() === activeCategory,
+      );
+    }
+
+    if (searchQuery) {
+      const lowerQuery = searchQuery.toLowerCase();
+      result = result.filter(
+        (n) =>
+          n.title?.toLowerCase().includes(lowerQuery) ||
+          n.content?.toLowerCase().includes(lowerQuery),
+      );
+    }
+
+    return result;
+  }, [notes, activeCategory, searchQuery]);
+
+  return { ...queryInfo, data: filteredNotes };
+}
+
+export function useAddCategory() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (name: string) => {
+      await fetch("/api/categories", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name }),
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["categories"] });
     },
   });
 }
 
-export function useCreateNote() {
+export function useUpdateCategory() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, name }: { id: string; name: string }) => {
+      await fetch(`/api/categories/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name }),
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["categories"] });
+      queryClient.invalidateQueries({ queryKey: ["notes"] });
+    },
+  });
+}
+
+export function useDeleteCategory() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      await fetch(`/api/categories/${id}`, { method: "DELETE" });
+      return id;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["categories"] });
+      queryClient.invalidateQueries({ queryKey: ["notes"] });
+    },
+  });
+}
+
+export function useAddNote() {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -81,7 +167,6 @@ export function useCreateNote() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(newNote),
       });
-      if (!response.ok) throw new Error("Failed to create note");
       return response.json() as Promise<Note>;
     },
     onMutate: async (newNote) => {
@@ -113,7 +198,6 @@ export function useCreateNote() {
         queryClient.setQueryData(["notes"], context.previousNotes);
       }
     },
-    onSettled: () => {},
   });
 }
 
@@ -125,13 +209,12 @@ export function useUpdateNote() {
       id,
       ...updateData
     }: Partial<Note> & { id: string }) => {
-      const response = await fetch(`/api/notes/${id}`, {
+      const res = await fetch(`/api/notes/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(updateData),
       });
-      if (!response.ok) throw new Error("Failed to update note");
-      return response.json() as Promise<Note>;
+      return res.json() as Promise<Note>;
     },
     onMutate: async (updatedNote) => {
       await queryClient.cancelQueries({ queryKey: ["notes"] });
@@ -155,7 +238,6 @@ export function useUpdateNote() {
         queryClient.setQueryData(["notes"], context.previousNotes);
       }
     },
-    onSettled: () => {},
   });
 }
 
@@ -164,8 +246,7 @@ export function useDeleteNote() {
 
   return useMutation({
     mutationFn: async (id: string) => {
-      const response = await fetch(`/api/notes/${id}`, { method: "DELETE" });
-      if (!response.ok) throw new Error("Failed to delete note");
+      await fetch(`/api/notes/${id}`, { method: "DELETE" });
       return id;
     },
     onMutate: async (deletedId) => {
@@ -188,6 +269,20 @@ export function useDeleteNote() {
         queryClient.setQueryData(["notes"], context.previousNotes);
       }
     },
-    onSettled: () => {},
+  });
+}
+export function useSyncNotes() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async () => {
+      const response = await fetch("/api/notes/sync", {
+        method: "POST",
+      });
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["notes"] });
+      queryClient.invalidateQueries({ queryKey: ["categories"] });
+    },
   });
 }

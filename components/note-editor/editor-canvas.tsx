@@ -44,7 +44,7 @@ export function EditorCanvas({
         heading: { levels: [1, 2, 3] },
       }),
       Placeholder.configure({
-        placeholder: "Start writing something extraordinary...",
+        placeholder: "Start writing...",
         emptyEditorClass: "is-editor-empty",
       }),
       CharacterCount,
@@ -83,35 +83,36 @@ export function EditorCanvas({
           }
           role="heading"
           aria-level={1}
-          className="font-heading placeholder:text-muted/50 mb-6 w-full resize-none overflow-hidden border-none bg-transparent text-5xl tracking-tight transition-all duration-300 focus:ring-0 focus:outline-none lg:text-7xl"
+          className="font-heading placeholder:text-muted/50 mb-6 w-full resize-none overflow-hidden border-none bg-transparent text-5xl tracking-widest transition-all duration-300 focus:ring-0 focus:outline-none lg:text-7xl"
           placeholder="Untitled Note"
         />
 
-        <div className="flex flex-wrap items-center gap-4">
+        <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-4">
           <CategorySelector
             currentCategory={category}
             categoriesList={categoriesList}
             onCategoryChange={onCategoryChange}
           />
-          <div className="bg-border/50 h-4 w-px" />
-          <span className="text-muted-foreground text-[10px] font-semibold tracking-widest uppercase">
+          <div className="bg-border/50 hidden h-4 w-px sm:block" />
+          <span className="text-muted-foreground text-center text-[10px] font-semibold tracking-widest uppercase sm:w-auto">
             Last edited{" "}
             {new Date(updatedAt).toLocaleTimeString([], {
               hour: "2-digit",
               minute: "2-digit",
             })}
           </span>
-          {toolbar && (
-            <>
-              <div className="bg-border/50 h-4 w-px" />
-              {toolbar}
-            </>
-          )}
 
           {editor && (
             <>
-              <div className="bg-border/50 h-4 w-px" />
+              <div className="bg-border/50 hidden h-4 w-px sm:block" />
               <TiptapToolbar editor={editor} />
+            </>
+          )}
+
+          {toolbar && (
+            <>
+              <div className="bg-border/50 hidden h-4 w-px sm:block" />
+              {toolbar}
             </>
           )}
         </div>

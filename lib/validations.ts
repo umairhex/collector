@@ -10,6 +10,7 @@ export const noteSchema = z.object({
     .string()
     .min(1, "Category is required")
     .max(50, "Category must be less than 50 characters"),
+  shareable: z.boolean().optional().default(false),
 });
 
 export const updateNoteSchema = noteSchema.partial();
@@ -22,5 +23,8 @@ export const categorySchema = z.object({
     .regex(
       /^[a-zA-Z0-9\s-]+$/,
       "Category name can only contain letters, numbers, spaces, and hyphens",
-    ),
+    )
+    .refine((name) => name.toLowerCase() !== "all", {
+      message: "Category name 'all' is reserved",
+    }),
 });

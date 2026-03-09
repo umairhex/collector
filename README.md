@@ -38,7 +38,15 @@ A high-performance, minimalist personal knowledge base.
 
     ```env
     MONGODB_URI=your_mongodb_connection_string
+    # Base URL used for social image URLs (OG/Twitter).
+    # e.g. https://collector.example.com
+    NEXT_PUBLIC_BASE_URL=https://localhost:3000
     ```
+    
+    > When deploying, set `NEXT_PUBLIC_BASE_URL` to your production domain so
+    > metadata images resolve correctly instead of using the default
+    > `http://localhost:3000`.
+
 
 3.  **Run Development**:
     ```bash

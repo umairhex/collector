@@ -74,7 +74,9 @@ export const EditorHeader = React.memo(function EditorHeader({
               )}
             </Button>
           </TooltipTrigger>
-          <TooltipContent side="bottom">Toggle theme</TooltipContent>
+          <TooltipContent side="bottom" className="hidden md:block">
+            Toggle theme
+          </TooltipContent>
         </Tooltip>
       )}
     </header>

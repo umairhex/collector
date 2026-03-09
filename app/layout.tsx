@@ -28,7 +28,10 @@ export const viewport: Viewport = {
   userScalable: false,
 };
 
+const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://localhost:3000";
+
 export const metadata: Metadata = {
+  metadataBase: new URL(baseUrl),
   title: "Collector | Premium Personal Knowledge Base",
   description:
     "A high-performance, minimalist personal knowledge base built for focus and precision.",

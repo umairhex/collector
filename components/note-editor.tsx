@@ -3,27 +3,19 @@
 import * as React from "react";
 import { Loader2 } from "lucide-react";
 import { useQueryState } from "nuqs";
-import { useDebouncedCallback, useThrottledCallback } from "use-debounce";
-import { toast } from "sonner";
-import { z } from "zod";
-import { updateNoteSchema } from "@/lib/validations";
 
-import {
-  useNotes,
-  useUpdateNote,
-  useDeleteNote,
-  useCategoriesList,
-} from "@/hooks/use-notes";
+import { useNotes, useCategories } from "@/hooks/use-notes";
+import { useNoteSync } from "@/hooks/use-note-sync";
+import { useNoteActions } from "@/hooks/use-note-actions";
 import { EditorHeader } from "./note-editor/editor-header";
 import { EditorEmptyState } from "./note-editor/editor-empty-state";
 import { EditorToolbar } from "./note-editor/editor-toolbar";
 import { EditorCanvas } from "./note-editor/editor-canvas";
 import { SearchInput } from "@/components/search-input";
-import { DEFAULT_CATEGORIES } from "@/lib/utils";
 
 export function NoteEditor() {
   const [activeNoteId, setActiveNoteId] = useQueryState("noteId");
-  const [activeCategory, setActiveCategory] = useQueryState("category", {
+  const [activeCategory] = useQueryState("category", {
     defaultValue: "all",
   });
   const [searchQuery, setSearchQuery] = useQueryState("search", {
@@ -31,192 +23,53 @@ export function NoteEditor() {
   });
 
   const { data: notes, isLoading: isLoadingNotes } = useNotes();
-  const { data: categoriesList = [...DEFAULT_CATEGORIES] } =
-    useCategoriesList();
-  const updateNote = useUpdateNote();
-  const deleteNote = useDeleteNote();
+  const { data: categories = [] } = useCategories();
 
-  const [localTitle, setLocalTitle] = React.useState("");
-  const [localContent, setLocalContent] = React.useState("");
-  const [isAutoSave, setIsAutoSave] = React.useState(true);
+  const {
+    activeNote,
+    localTitle,
+    setLocalTitle,
+    localContent,
+    setLocalContent,
+    isAutoSave,
+    toggleAutoSave,
+    scheduleUpdate,
+    handleManualSave,
+    isUpdating,
+  } = useNoteSync(activeNoteId);
 
-  const activeNote = React.useMemo(
-    () => notes?.find((n) => n._id === activeNoteId) || null,
-    [notes, activeNoteId],
-  );
+  const {
+    handleDelete,
+    handleExport,
+    handleShare,
+    handleToggleShare,
+    handleCopy,
+    handlePaste,
+    isDeleting,
+  } = useNoteActions(activeNoteId, setActiveNoteId);
 
-  const lastIdRef = React.useRef<string | null>(null);
+  const categoriesList = React.useMemo(() => {
+    return categories.filter((c) => c.id !== "all").map((c) => c.name);
+  }, [categories]);
 
-  React.useEffect(() => {
-    const isSameNote = activeNoteId === lastIdRef.current;
-    if (activeNote) {
-      setLocalTitle((prev) =>
-        !isSameNote || prev === "" ? activeNote.title || "" : prev,
-      );
-      setLocalContent((prev) =>
-        !isSameNote || prev === "" ? activeNote.content || "" : prev,
-      );
-      lastIdRef.current = activeNoteId;
-    } else {
-      setLocalTitle("");
-      setLocalContent("");
-      lastIdRef.current = null;
-    }
-  }, [activeNote, activeNoteId]);
-
-  const sendUpdate = React.useCallback(
-    (updates: { title?: string; content?: string; category?: string }) => {
-      if (!activeNoteId) return;
-
-      if (updates.title !== undefined && updates.title === "") {
-        return;
-      }
-
-      try {
-        const validated = updateNoteSchema.parse(updates);
-        updateNote.mutate(
-          { id: activeNoteId, ...validated },
-          {
-            onError: () => toast.error("Failed to sync changes"),
-          },
-        );
-      } catch (error) {
-        if (error instanceof z.ZodError) {
-          toast.error(error.issues[0].message);
-        }
-      }
-    },
-    [activeNoteId, updateNote],
-  );
-
-  const throttledUpdate = useThrottledCallback(sendUpdate, 1000, {
-    leading: false,
-    trailing: true,
-  });
-  const debouncedUpdate = useDebouncedCallback(sendUpdate, 500);
-
-  const handleManualSave = React.useCallback(() => {
-    sendUpdate({
-      title: localTitle,
-      content: localContent,
-      category: activeNote?.category,
+  const onPasteHandler = React.useCallback(async () => {
+    await handlePaste((text) => {
+      const nextContent = localContent ? `${localContent}\n${text}` : text;
+      setLocalContent(nextContent);
+      scheduleUpdate({ content: nextContent });
     });
-    toast.success("Note saved manually");
-  }, [sendUpdate, localTitle, localContent, activeNote]);
-
-  const toggleAutoSave = React.useCallback(() => {
-    setIsAutoSave((prev) => {
-      const next = !prev;
-      toast.success(next ? "Auto-save enabled" : "Auto-save disabled");
-      return next;
-    });
-  }, []);
-
-  const scheduleUpdate = React.useCallback(
-    (updates: { title?: string; content?: string; category?: string }) => {
-      if (updates.title !== undefined && updates.title === "") {
-        return;
-      }
-
-      if (!isAutoSave) return;
-
-      throttledUpdate(updates);
-      debouncedUpdate(updates);
-    },
-    [throttledUpdate, debouncedUpdate, isAutoSave],
-  );
-
-  const handleDelete = () => {
-    if (!activeNoteId || !notes) return;
-
-    const currentCategory = activeNote?.category || "all";
-    const filteredNotes = notes.filter(
-      (n) => activeNoteId === "all" || n.category === currentCategory,
-    );
-    const currentIndex = filteredNotes.findIndex((n) => n._id === activeNoteId);
-    let nextNoteId: string | null = null;
-
-    if (filteredNotes.length > 1) {
-      const nextNote =
-        filteredNotes[currentIndex + 1] || filteredNotes[currentIndex - 1];
-      if (nextNote) nextNoteId = nextNote._id;
-    }
-
-    deleteNote.mutate(activeNoteId, {
-      onSuccess: () => {
-        toast.success("Note deleted successfully");
-        if (nextNoteId) {
-          const nextNote = notes.find((n) => n._id === nextNoteId);
-          if (nextNote && nextNote.category.toLowerCase() !== activeCategory) {
-            setActiveCategory(nextNote.category.toLowerCase());
-          }
-        }
-        setActiveNoteId(nextNoteId);
-      },
-      onError: () => {
-        toast.error("Failed to delete note");
-      },
-    });
-  };
-
-  const handleExport = React.useCallback(
-    (format: "txt" | "md") => {
-      if (!localTitle && !localContent) return;
-      const strippedContent = localContent.replace(/<[^>]*>?/gm, "");
-      const textToSave =
-        format === "md"
-          ? `# ${localTitle}\n\n${localContent}`
-          : `${localTitle}\n\n${strippedContent}`;
-      const blob = new Blob([textToSave], { type: "text/plain" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `${localTitle || "note"}.${format}`;
-      a.click();
-      URL.revokeObjectURL(url);
-      toast.success(`Exported as .${format}`);
-    },
-    [localContent, localTitle],
-  );
-
-  const handleShare = React.useCallback(() => {
-    if (!activeNoteId) return;
-    const url = `${window.location.origin}/notes/${activeNoteId}`;
-    try {
-      navigator.clipboard.writeText(url);
-      toast.success("Share link copied to clipboard!");
-    } catch {
-      toast.error("Failed to copy link");
-    }
-  }, [activeNoteId]);
-
-  const handlePaste = React.useCallback(async () => {
-    try {
-      const text = await navigator.clipboard.readText();
-      if (!text) return;
-
-      setLocalContent((prev) => {
-        const next = prev ? `${prev}\n${text}` : text;
-        if (isAutoSave) scheduleUpdate({ content: next });
-        return next;
-      });
-      toast.success("Pasted from clipboard");
-    } catch {
-      toast.error("Clipboard permission denied or failed to read.");
-    }
-  }, [scheduleUpdate, isAutoSave]);
+  }, [handlePaste, localContent, setLocalContent, scheduleUpdate]);
 
   React.useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.altKey && e.key === "v") {
         e.preventDefault();
-        handlePaste();
+        onPasteHandler();
       }
     };
-
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [handlePaste]);
+  }, [onPasteHandler]);
 
   return (
     <div className="bg-background relative flex h-full flex-1 flex-col overflow-hidden">
@@ -231,7 +84,7 @@ export function NoteEditor() {
               <div className="flex flex-col items-center gap-4">
                 <Loader2 className="text-primary h-10 w-10 animate-spin opacity-50" />
                 <p className="font-heading text-muted-foreground text-sm tracking-widest uppercase">
-                  Loading Canvas
+                  Loading Note
                 </p>
               </div>
             </div>
@@ -264,15 +117,22 @@ export function NoteEditor() {
                 toolbar={
                   <EditorToolbar
                     noteTitle={activeNote.title}
-                    isUpdating={updateNote.isPending}
-                    isDeleting={deleteNote.isPending}
-                    onDelete={handleDelete}
-                    onPaste={handlePaste}
+                    isUpdating={isUpdating}
+                    isDeleting={isDeleting}
+                    onDelete={() => handleDelete(notes || [], activeCategory)}
+                    onPaste={onPasteHandler}
                     isAutoSave={isAutoSave}
                     onToggleAutoSave={toggleAutoSave}
                     onManualSave={handleManualSave}
-                    onExport={handleExport}
+                    onExport={(format) =>
+                      handleExport(localTitle, localContent, format)
+                    }
                     onShare={handleShare}
+                    onCopy={() => handleCopy(localTitle, localContent)}
+                    isShareable={activeNote.shareable}
+                    onToggleShare={() =>
+                      handleToggleShare(activeNote.shareable)
+                    }
                   />
                 }
               />

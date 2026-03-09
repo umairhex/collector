@@ -1,174 +1,243 @@
 "use client";
 
 import * as React from "react";
-import { BookOpen } from "lucide-react";
+import { Plus, Settings, LogOut, RefreshCw } from "lucide-react";
 import { useQueryState } from "nuqs";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 import {
   Sidebar,
   SidebarContent,
+  SidebarFooter,
   SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarGroup,
+  SidebarGroupLabel,
+  SidebarGroupAction,
+  SidebarGroupContent,
   SidebarRail,
 } from "@/components/ui/sidebar";
-import { useNotes, useCreateNote, useCategories } from "@/hooks/use-notes";
+import { useAuthMutation } from "@/hooks/use-auth";
+import {
+  useAddNote,
+  useCategories,
+  useNotes,
+  useSyncNotes,
+} from "@/hooks/use-notes";
+import { useCategoryActions } from "@/hooks/use-category-actions";
 import { CategoryList } from "./app-sidebar/category-list";
 import { NoteList } from "./app-sidebar/note-list";
-import { AddCategoryDialog } from "./app-sidebar/add-category-dialog";
+import { CategoryDialog } from "./app-sidebar/add-category-dialog";
+import { ChangeCodeDialog } from "./app-sidebar/change-code-dialog";
+import { SearchInput } from "./search-input";
+import { AuthResponse } from "@/types";
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+export function AppSidebar() {
+  const router = useRouter();
+  const [activeNoteId, setActiveNoteId] = useQueryState("noteId");
   const [activeCategory, setActiveCategory] = useQueryState("category", {
     defaultValue: "all",
   });
-  const [activeNoteId, setActiveNoteId] = useQueryState("noteId");
   const [searchQuery, setSearchQuery] = useQueryState("search", {
     defaultValue: "",
   });
 
-  const [mounted, setMounted] = React.useState(false);
+  const {
+    isAddOpen,
+    setIsAddOpen,
+    isEditOpen,
+    setIsEditOpen,
+    categoryToEdit,
+    setCategoryToEdit,
+    handleAdd,
+    handleEdit,
+    handleDelete,
+    isPending: isCategoryPending,
+  } = useCategoryActions();
 
-  React.useEffect(() => {
-    setMounted(true);
-  }, []);
+  const [isAuthOpen, setIsAuthOpen] = React.useState(false);
 
-  const { data: notes, isLoading } = useNotes();
-  const { data: categories = [{ id: "all", name: "All Notes", count: 0 }] } =
-    useCategories();
-  const createNote = useCreateNote();
+  const auth = useAuthMutation();
+  const addNote = useAddNote();
+  const syncNotes = useSyncNotes();
+  const { data: notes = [] } = useNotes();
+  const { data: categories = [] } = useCategories();
 
-  const [isCategoryDialogOpen, setIsCategoryDialogOpen] = React.useState(false);
+  const handleSync = async () => {
+    syncNotes.mutate(undefined, {
+      onSuccess: () => toast.success("Sync complete"),
+      onError: (error) => toast.error(`Sync failed: ${error.message}`),
+    });
+  };
 
-  const filteredNotes = React.useMemo(() => {
-    if (!notes) return [];
-
-    let result = notes;
-
-    if (activeCategory !== "all") {
-      result = result.filter(
-        (n) => (n.category || "General").toLowerCase() === activeCategory,
-      );
-    }
-
-    if (searchQuery) {
-      const lowerQuery = searchQuery.toLowerCase();
-      result = result.filter(
-        (n) =>
-          (n.title && n.title.toLowerCase().includes(lowerQuery)) ||
-          (n.content && n.content.toLowerCase().includes(lowerQuery)),
-      );
-    }
-
-    return result;
-  }, [notes, activeCategory, searchQuery]);
-
-  const handleCreateNote = React.useCallback(() => {
-    if (searchQuery) setSearchQuery("");
-
-    const defaultCategory =
-      activeCategory === "all"
-        ? "Ideas"
-        : activeCategory.charAt(0).toUpperCase() + activeCategory.slice(1);
-
-    createNote.mutate(
-      { title: "Untitled Note", content: "", category: defaultCategory },
+  const handleCreateNote = () => {
+    const category = activeCategory === "all" ? "General" : activeCategory;
+    addNote.mutate(
+      { category },
       {
-        onSuccess: (newNote) => {
-          setActiveNoteId(newNote._id);
-          if (activeCategory === "all") {
-            setActiveCategory(defaultCategory.toLowerCase());
-          }
-          toast.success("Note created successfully");
+        onSuccess: (note) => {
+          setActiveNoteId(note._id);
+          toast.success(`Note created in ${category}`);
         },
         onError: () => toast.error("Failed to create note"),
-      },
-    );
-  }, [
-    activeCategory,
-    createNote,
-    setActiveNoteId,
-    setActiveCategory,
-    searchQuery,
-    setSearchQuery,
-  ]);
-
-  React.useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.altKey && e.key === "n") {
-        e.preventDefault();
-        handleCreateNote();
-      }
-      if (e.altKey && e.key === "c") {
-        e.preventDefault();
-        setIsCategoryDialogOpen(true);
-      }
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [activeCategory, handleCreateNote]);
-
-  const handleAddCategory = (name: string) => {
-    createNote.mutate(
-      {
-        title: `Welcome to ${name}`,
-        content: `This is your first note in the ${name} category.`,
-        category: name,
-      },
-      {
-        onSuccess: (newNote) => {
-          setIsCategoryDialogOpen(false);
-          setActiveNoteId(newNote._id);
-          setActiveCategory(name.toLowerCase());
-          toast.success(`Category "${name}" created`);
-        },
-        onError: () => toast.error("Failed to create category"),
       },
     );
   };
 
   return (
-    <>
-      <Sidebar {...props}>
-        <SidebarHeader className="border-border bg-muted/20 border-b px-4 py-4">
-          <div className="font-heading flex items-center gap-3 text-2xl font-semibold tracking-wide">
-            <div className="bg-primary text-primary-foreground rounded-lg p-2 shadow-sm">
-              <BookOpen className="h-5 w-5" />
+    <Sidebar
+      collapsible="icon"
+      className="bg-sidebar/50 border-r-0 backdrop-blur-xl"
+    >
+      <SidebarHeader className="border-sidebar-border/50 border-b p-4">
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <div className="flex flex-col items-start px-1 transition-all group-data-[collapsible=icon]:justify-center">
+              <div className="flex flex-col items-start whitespace-nowrap group-data-[collapsible=icon]:hidden">
+                <span className="font-heading text-3xl leading-none font-semibold tracking-widest uppercase">
+                  Collector
+                </span>
+              </div>
             </div>
-            Collector
-          </div>
-        </SidebarHeader>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarHeader>
 
-        <SidebarContent className="bg-muted/10">
-          {mounted ? (
-            <>
-              <CategoryList
-                categories={categories}
-                activeCategory={activeCategory}
-                onCategorySelect={setActiveCategory}
-                onAddCategory={() => setIsCategoryDialogOpen(true)}
-                isLoading={isLoading}
+      <SidebarContent className="gap-6 py-6">
+        <SidebarGroup className="px-4">
+          <SidebarGroupContent>
+            <SearchInput
+              value={searchQuery}
+              onChange={setSearchQuery}
+              className="bg-background/50 border-sidebar-border/50 focus:ring-sidebar-ring/10 h-10 rounded-xl"
+            />
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarGroup className="px-2">
+          <SidebarGroupLabel className="text-[10px] tracking-[0.2em] uppercase">
+            Categories
+          </SidebarGroupLabel>
+          <SidebarGroupAction
+            onClick={() => setIsAddOpen(true)}
+            title="Add Category"
+          >
+            <Plus className="h-3.5 w-3.5" />
+          </SidebarGroupAction>
+          <SidebarGroupContent>
+            <CategoryList
+              categories={categories}
+              activeCategory={activeCategory}
+              setActiveCategory={setActiveCategory}
+              onEdit={(category) => {
+                setCategoryToEdit(category);
+                setIsEditOpen(true);
+              }}
+              onDelete={handleDelete}
+            />
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarGroup className="px-2">
+          <SidebarGroupLabel className="text-[10px] tracking-[0.2em] uppercase">
+            Notes
+          </SidebarGroupLabel>
+          <SidebarGroupAction onClick={handleCreateNote} title="New Note">
+            <Plus className="h-3.5 w-3.5" />
+          </SidebarGroupAction>
+          <SidebarGroupContent>
+            <NoteList
+              notes={notes}
+              activeNoteId={activeNoteId}
+              setActiveNoteId={setActiveNoteId}
+              activeCategory={activeCategory}
+              searchQuery={searchQuery}
+            />
+          </SidebarGroupContent>
+        </SidebarGroup>
+      </SidebarContent>
+
+      <SidebarFooter className="border-sidebar-border/50 border-t p-2">
+        <SidebarMenu className="gap-1">
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              size="lg"
+              className="hover:bg-sidebar-accent/50 group/sync rounded-xl"
+              onClick={handleSync}
+              disabled={syncNotes.isPending}
+            >
+              <RefreshCw
+                className={`h-4 w-4 transition-transform duration-500 group-hover:rotate-180 ${syncNotes.isPending ? "animate-spin" : ""}`}
               />
+              <span className="text-[10px] font-medium tracking-[0.15em] uppercase">
+                Sync Notes
+              </span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              size="lg"
+              onClick={() => setIsAuthOpen(true)}
+              className="hover:bg-sidebar-accent/50 rounded-xl"
+            >
+              <Settings className="h-4 w-4" />
+              <span className="text-[10px] font-medium tracking-[0.15em] uppercase">
+                Settings
+              </span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              size="lg"
+              onClick={() =>
+                auth.mutate(
+                  { action: "logout" },
+                  {
+                    onSuccess: (data: AuthResponse) => {
+                      toast.success(data.message || "Logged out");
+                      router.push("/login");
+                    },
+                    onError: (error) => {
+                      toast.error(`Logout failed: ${error.message}`);
+                    },
+                  },
+                )
+              }
+              className="hover:bg-destructive/10 hover:text-destructive rounded-xl"
+              disabled={auth.isPending}
+            >
+              <LogOut className="h-4 w-4" />
+              <span className="text-[10px] font-medium tracking-[0.15em] uppercase">
+                Logout
+              </span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarFooter>
 
-              <NoteList
-                notes={filteredNotes}
-                activeNoteId={activeNoteId}
-                onNoteSelect={setActiveNoteId}
-                onCreateNote={handleCreateNote}
-                isCreating={createNote.isPending}
-                isLoading={isLoading}
-                searchQuery={searchQuery}
-              />
-            </>
-          ) : null}
-        </SidebarContent>
-        <SidebarRail />
-      </Sidebar>
+      <SidebarRail />
 
-      <AddCategoryDialog
-        isOpen={isCategoryDialogOpen}
-        onOpenChange={setIsCategoryDialogOpen}
-        onSubmit={handleAddCategory}
-        isPending={createNote.isPending}
+      <CategoryDialog
+        isOpen={isAddOpen}
+        onOpenChange={setIsAddOpen}
+        onSubmit={handleAdd}
+        isPending={isCategoryPending}
+        mode="add"
       />
-    </>
+
+      <CategoryDialog
+        isOpen={isEditOpen}
+        onOpenChange={setIsEditOpen}
+        onSubmit={handleEdit}
+        isPending={isCategoryPending}
+        initialName={categoryToEdit?.name || ""}
+        mode="edit"
+      />
+
+      <ChangeCodeDialog isOpen={isAuthOpen} onOpenChange={setIsAuthOpen} />
+    </Sidebar>
   );
 }

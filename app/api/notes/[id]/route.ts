@@ -4,6 +4,7 @@ import { z } from "zod";
 import connectToDatabase from "@/lib/mongodb";
 import Note from "@/models/Note";
 import { updateNoteSchema } from "@/lib/validations";
+import { verifyAuth } from "@/lib/auth";
 
 export async function PATCH(
   req: Request,
@@ -11,6 +12,10 @@ export async function PATCH(
 ) {
   try {
     const [{ id }, body] = await Promise.all([props.params, req.json()]);
+
+    const { isAuthorized, user } = await verifyAuth();
+    if (!isAuthorized || !user)
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return NextResponse.json({ error: "Invalid Note ID" }, { status: 400 });
@@ -20,13 +25,20 @@ export async function PATCH(
 
     const validated = updateNoteSchema.parse(body);
 
-    const updatedNote = await Note.findByIdAndUpdate(id, validated, {
-      returnDocument: "after",
-      runValidators: true,
-    }).lean();
+    const updatedNote = await Note.findOneAndUpdate(
+      { _id: id, userId: user._id },
+      validated,
+      {
+        returnDocument: "after",
+        runValidators: true,
+      },
+    ).lean();
 
     if (!updatedNote) {
-      return NextResponse.json({ error: "Note not found" }, { status: 404 });
+      return NextResponse.json(
+        { error: "Note not found or unauthorized" },
+        { status: 404 },
+      );
     }
 
     return NextResponse.json(updatedNote);
@@ -48,16 +60,26 @@ export async function DELETE(
   try {
     const { id } = await props.params;
 
+    const { isAuthorized, user } = await verifyAuth();
+    if (!isAuthorized || !user)
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return NextResponse.json({ error: "Invalid Note ID" }, { status: 400 });
     }
 
     await connectToDatabase();
 
-    const deletedNote = await Note.findByIdAndDelete(id);
+    const deletedNote = await Note.findOneAndDelete({
+      _id: id,
+      userId: user._id,
+    });
 
     if (!deletedNote) {
-      return NextResponse.json({ error: "Note not found" }, { status: 404 });
+      return NextResponse.json(
+        { error: "Note not found or unauthorized" },
+        { status: 404 },
+      );
     }
 
     return NextResponse.json({ message: "Note deleted successfully" });
