@@ -20,6 +20,23 @@ A user deploys the application, creates their credentials on first visit, and im
 
 ---
 
+## Tech Stack
+
+- **Frontend**: Next.js, React, TypeScript
+- **Styling**: Tailwind CSS
+- **Backend**: Next.js API Routes
+- **Database**: MongoDB, Mongoose
+- **AI/LLM**: OpenRouter (Multi-model)
+- **Rich Text Editor**: TipTap
+- **UI Components**: Radix UI, Lucide React, Sonner
+- **State Management**: Zustand
+- **Data Fetching**: TanStack Query
+- **Client Storage**: IndexedDB (idb-keyval)
+- **Form Validation**: Zod
+- **Libraries**: React Hook Form, React Resizable Panels, Use Debounce, Crypto-js
+
+---
+
 ## Key Features
 
 ### Rich Text Editor
