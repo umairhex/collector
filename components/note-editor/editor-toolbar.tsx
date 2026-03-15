@@ -5,7 +5,6 @@ import {
   ClipboardPaste,
   Trash2,
   RefreshCcw,
-  CheckCircle2,
   Save,
   Share2,
   Download,
@@ -25,11 +24,6 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -77,6 +71,7 @@ export const EditorToolbar = React.memo(function EditorToolbar({
       <ToolbarButton
         icon={Save}
         label="Save Note"
+        shortcut="CTRL S"
         onClick={onManualSave}
         isLoading={isUpdating}
         loaderIcon={RefreshCcw}
@@ -93,48 +88,6 @@ export const EditorToolbar = React.memo(function EditorToolbar({
           />
         </>
       )}
-
-      <div className="bg-border/30 mx-1 hidden h-5 w-px sm:block" />
-
-      <div className="flex h-8 w-8 items-center justify-center">
-        {isUpdating ? (
-          <Tooltip>
-            <TooltipTrigger>
-              <RefreshCcw className="text-primary h-4 w-4 animate-spin" />
-            </TooltipTrigger>
-            <TooltipContent
-              side="top"
-              className="hidden text-[10px] tracking-wider md:block"
-            >
-              Saving...
-            </TooltipContent>
-          </Tooltip>
-        ) : typeof navigator !== "undefined" && !navigator.onLine ? (
-          <Tooltip>
-            <TooltipTrigger>
-              <div className="h-2 w-2 animate-pulse rounded-full bg-amber-500/80" />
-            </TooltipTrigger>
-            <TooltipContent
-              side="top"
-              className="hidden text-[10px] tracking-wider md:block"
-            >
-              Working Offline
-            </TooltipContent>
-          </Tooltip>
-        ) : (
-          <Tooltip>
-            <TooltipTrigger>
-              <CheckCircle2 className="text-primary/80 h-4 w-4" />
-            </TooltipTrigger>
-            <TooltipContent
-              side="top"
-              className="hidden items-center gap-2 border-none bg-black/80 text-[10px] tracking-wider text-white backdrop-blur-md md:flex"
-            >
-              Saved
-            </TooltipContent>
-          </Tooltip>
-        )}
-      </div>
 
       <div className="bg-border/30 mx-1 hidden h-5 w-px sm:block" />
 

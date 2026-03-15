@@ -70,12 +70,28 @@ export function AppSidebar() {
       { category, _id: tempId },
       {
         onSuccess: (note) => {
-          setTimeout(() => {
-            setActiveNoteId(note._id);
-          }, 200);
+          console.log(
+            "LOG: [app-sidebar] creation onSuccess data payload:",
+            note,
+          );
+          if (!note?._id) {
+            console.error(
+              "LOG: [app-sidebar] FAIL - Received note without _id!",
+            );
+            toast.error("Failed to retrieve note identifier");
+            return;
+          }
+          console.log(
+            "LOG: [app-sidebar] Triggering setActiveNoteId with:",
+            note._id,
+          );
+          setActiveNoteId(note._id);
           toast.success(`Note created in ${category}`);
         },
-        onError: () => toast.error("Failed to create note"),
+        onError: (error) => {
+          console.error("LOG: [app-sidebar] creation onError:", error);
+          toast.error("Failed to create note");
+        },
       },
     );
   };

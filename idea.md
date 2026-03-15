@@ -12,11 +12,11 @@ Collector is a minimalist, high-performance personal knowledge base. It provides
 
 ### Value
 
-Collector delivers the writing and organization quality of premium note-taking apps while keeping data under complete user control. The AI editing capability (grammar, clarity, rewriting) works across multiple LLM models through OpenRouter, giving users flexibility without vendor lock-in. URL-driven state makes every view bookmarkable and shareable. The optimistic UI with debounced auto-save ensures the writing experience feels instant while maintaining data integrity through conflict detection.
+Collector delivers the writing and organization quality of premium note-taking apps while keeping data under complete user control. The AI editing capability (grammar, clarity, rewriting) works across multiple LLM models through OpenRouter, giving users flexibility without vendor lock-in. URL-driven state makes every view bookmarkable and shareable. The optimistic UI ensures the writing experience feels instant while maintaining data integrity.
 
 ### User Outcome
 
-A user deploys the application, creates their credentials on first visit, and immediately begins capturing notes in a polished rich text editor. Notes are categorized, searchable in real-time, and auto-saved in the background. When a passage needs polishing, the AI Fix button rewrites it for clarity using whichever LLM the user prefers. Individual notes can be shared via public URLs. The experience is fast, private, and entirely self-contained.
+A user deploys the application, creates their credentials on first visit, and immediately begins capturing notes in a polished rich text editor. Notes are categorized and searchable in real-time. When a passage needs polishing, the AI Fix button rewrites it for clarity using whichever LLM the user prefers. Individual notes can be shared via public URLs. The experience is fast, private, and entirely self-contained.
 
 ---
 
@@ -98,7 +98,7 @@ Finding any note is instant regardless of collection size, and URL-driven state 
 
 ---
 
-### Shareable Notes and Auto-Save
+### Shareable Notes
 
 #### Purpose
 
@@ -108,13 +108,12 @@ Enable selective sharing of individual notes while ensuring no work is ever lost
 
 - Per-note shareable toggle generating public URLs at `/notes/[id]`
 - Read-only public view with SEO metadata for shared notes
-- Optimistic UI with debounced auto-save (changes sync in background)
-- Conflict detection comparing `updatedAt` timestamps before syncing
+- Optimistic UI with manual saving
 - Clipboard integration with `Alt+V` shortcut and toast feedback
 
 #### User Benefit
 
-Notes save automatically without manual action, conflicts are detected before data is overwritten, and individual notes can be shared publicly when needed without exposing the entire vault.
+Notes save securely, and individual notes can be shared publicly when needed without exposing the entire vault.
 
 ---
 
@@ -146,7 +145,7 @@ On first launch, the system detects zero users and redirects to the setup page w
 
 ### Creation
 
-Users create notes assigned to categories through the editor. New categories are created on the fly. The rich text editor supports formatted content including headings, images, and styled text. Auto-save ensures content persists without manual action.
+Users create notes assigned to categories through the editor. New categories are created on the fly. The rich text editor supports formatted content including headings, images, and styled text. Manual save ensures content persists to the cloud.
 
 ### Organization
 

@@ -12,7 +12,7 @@ A high-performance, minimalist personal knowledge base.
 
 - **Instant Search**: Real-time filtering across titles and content.
 - **Dynamic Categories**: Automatically derives categories from your notes or create new ones instantly.
-- **Optimistic UI**: No loading spinners for saving; changes are synced in the background with debounced persistence.
+- **Optimistic UI**: Snappy edits with optimistic updates on manual saves.
 - **Smart Clipboard**: Integrated cross-platform copy/paste with toast feedback.
 - **Premium UX**: Dark-mode first design with glassmorphism, radial gradients, and fluid micro-animations.
 - **Responsive Layout**: Fully optimized for mobile and desktop using a modular sidebar system.

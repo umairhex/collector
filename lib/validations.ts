@@ -15,7 +15,20 @@ export const noteSchema = z.object({
   shareable: z.boolean().optional().default(false),
 });
 
-export const updateNoteSchema = noteSchema.partial();
+export const updateNoteSchema = z.object({
+  title: z
+    .string()
+    .min(1, "Title is required")
+    .max(200, "Title must be less than 200 characters")
+    .optional(),
+  content: z.string().optional(),
+  category: z
+    .string()
+    .min(1, "Category is required")
+    .max(50, "Category must be less than 50 characters")
+    .optional(),
+  shareable: z.boolean().optional(),
+});
 
 export const categorySchema = z.object({
   name: z

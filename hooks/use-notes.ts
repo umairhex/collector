@@ -2,7 +2,6 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { fetchClient as fetch } from "@/lib/fetch-client";
 import * as React from "react";
 import { Note, Category, DisplayCategory } from "@/types";
-import { DEFAULT_CATEGORIES } from "@/lib/utils";
 
 const fetchNotes = async (): Promise<Note[]> => {
   const response = await fetch("/api/notes");
@@ -39,19 +38,12 @@ export function useCategories() {
       catMap.set(cat, (catMap.get(cat) || 0) + 1);
     });
 
-    const displayCategories: DisplayCategory[] =
-      categories.length > 0
-        ? categories.map((c) => ({
-            id: c.name.toLowerCase(),
-            name: c.name,
-            count: catMap.get(c.name.toLowerCase()) || 0,
-            _id: c._id,
-          }))
-        : DEFAULT_CATEGORIES.map((name) => ({
-            id: name.toLowerCase(),
-            name,
-            count: catMap.get(name.toLowerCase()) || 0,
-          }));
+    const displayCategories: DisplayCategory[] = categories.map((c) => ({
+      id: c.name.toLowerCase(),
+      name: c.name,
+      count: catMap.get(c.name.toLowerCase()) || 0,
+      _id: c._id,
+    }));
 
     if (
       categories.length > 0 &&
@@ -205,7 +197,9 @@ export function useAddNote() {
       await queryClient.cancelQueries({ queryKey: ["notes"] });
       const previousNotes = queryClient.getQueryData<Note[]>(["notes"]);
 
-      const tempId = `temp-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+      const tempId =
+        (newNote as Partial<Note> & { _id?: string })._id ||
+        `temp-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
       const optimisticNote = {
         _id: tempId,
         ...newNote,
@@ -231,6 +225,7 @@ export function useAddNote() {
       queryClient.setQueryData<Note[]>(["notes"], (old = []) => {
         return old.map((n) => (n._id === context?.tempId ? newNote : n));
       });
+      queryClient.invalidateQueries({ queryKey: ["categories"] });
     },
     onError: (_err, _newNote, context) => {
       console.error("ERROR: onError callback - rolling back optimistic create");
@@ -285,9 +280,16 @@ export function useUpdateNote() {
       queryClient.setQueryData<Note[]>(["notes"], (old = []) =>
         old.map((n) => (n._id === updatedNote._id ? updatedNote : n)),
       );
+      queryClient.invalidateQueries({ queryKey: ["categories"] });
     },
-    onError: (_err, _newNote, context) => {
+    onError: (err, updatedNote, context) => {
       console.error("ERROR: onError callback - rolling back optimistic update");
+      if (err.message.includes("Note not found")) {
+        queryClient.setQueryData<Note[]>(["notes"], (old = []) =>
+          old.filter((n) => n._id !== updatedNote.id),
+        );
+        return;
+      }
       if (context?.previousNotes) {
         queryClient.setQueryData(["notes"], context.previousNotes);
       }
@@ -329,7 +331,10 @@ export function useDeleteNote() {
       );
       queryClient.invalidateQueries({ queryKey: ["categories"] });
     },
-    onError: (_err, _deletedId, context) => {
+    onError: (err, _deletedId, context) => {
+      if (err.message.includes("Note not found")) {
+        return;
+      }
       if (context?.previousNotes) {
         queryClient.setQueryData(["notes"], context.previousNotes);
       }

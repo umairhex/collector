@@ -92,7 +92,7 @@ export function CategoryDialog({
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
-              className="border-border/50 h-11 rounded-xl px-6 text-[10px] tracking-[0.2em] uppercase"
+              className="border-border/50 mr-3 h-11 rounded-xl px-6 text-[10px] tracking-[0.2em] uppercase"
             >
               Cancel
             </Button>

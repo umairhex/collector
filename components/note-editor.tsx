@@ -5,7 +5,7 @@ import { Loader2 } from "lucide-react";
 import { useQueryState } from "nuqs";
 
 import { useNotes, useCategories } from "@/hooks/use-notes";
-import { useNoteSync } from "@/hooks/use-note-sync";
+import { useNoteState } from "@/hooks/use-note-state";
 import { useNoteActions } from "@/hooks/use-note-actions";
 import { EditorHeader } from "./note-editor/editor-header";
 import { EditorEmptyState } from "./note-editor/editor-empty-state";
@@ -31,10 +31,11 @@ export function NoteEditor() {
     setLocalTitle,
     localContent,
     setLocalContent,
+    localCategory,
     handleManualSave,
     handleCategoryChange,
     isUpdating,
-  } = useNoteSync(activeNoteId);
+  } = useNoteState(activeNoteId);
 
   const {
     handleDelete,
@@ -57,6 +58,11 @@ export function NoteEditor() {
     });
   }, [handlePaste, localContent, setLocalContent]);
 
+  const handleManualSaveRef = React.useRef(handleManualSave);
+  React.useEffect(() => {
+    handleManualSaveRef.current = handleManualSave;
+  }, [handleManualSave]);
+
   const onPasteHandlerRef = React.useRef(onPasteHandler);
   React.useEffect(() => {
     onPasteHandlerRef.current = onPasteHandler;
@@ -67,6 +73,9 @@ export function NoteEditor() {
       if (e.altKey && e.key === "v") {
         e.preventDefault();
         onPasteHandlerRef.current();
+      } else if ((e.ctrlKey || e.metaKey) && e.key === "s") {
+        e.preventDefault();
+        handleManualSaveRef.current();
       }
     };
     window.addEventListener("keydown", handleKeyDown);
@@ -110,7 +119,7 @@ export function NoteEditor() {
                 onContentChange={(content) => {
                   setLocalContent(content);
                 }}
-                category={activeNote.category}
+                category={localCategory || activeNote.category}
                 categoriesList={categoriesList}
                 onCategoryChange={handleCategoryChange}
                 updatedAt={activeNote.updatedAt}

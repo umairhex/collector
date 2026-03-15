@@ -62,24 +62,20 @@ export async function POST(req: Request) {
     console.log("LOG: POST /api/notes normalized category", validated.category);
     await connectToDatabase();
 
-    const isFallback = ["General", "Ideas", "Work"].includes(
-      validated.category,
-    );
-    if (!isFallback) {
-      const categoryExists = await Category.findOne({
+    const categoryExists = await Category.findOne({
+      userId: user._id,
+      name: { $regex: new RegExp(`^${validated.category}$`, "i") },
+    });
+
+    if (!categoryExists) {
+      console.log(
+        "LOG: POST /api/notes category not found, creating dynamically",
+        validated.category,
+      );
+      await Category.create({
         userId: user._id,
-        name: { $regex: new RegExp(`^${validated.category}$`, "i") },
+        name: validated.category,
       });
-      if (!categoryExists) {
-        console.log(
-          "LOG: POST /api/notes category not found",
-          validated.category,
-        );
-        return NextResponse.json(
-          { error: "Invalid category" },
-          { status: 400 },
-        );
-      }
     }
 
     const note = await Note.create({
