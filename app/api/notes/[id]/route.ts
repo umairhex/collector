@@ -22,11 +22,9 @@ export async function PATCH(
       return NextResponse.json({ error: "Invalid Note ID" }, { status: 400 });
     }
 
-    console.log("LOG: PATCH /api/notes/" + id + " received", body);
     await connectToDatabase();
 
     const validated = updateNoteSchema.parse(body);
-    console.log("LOG: PATCH /api/notes/" + id + " validated", validated);
 
     if (validated.category) {
       validated.category = validated.category
@@ -55,7 +53,6 @@ export async function PATCH(
       }
     }
 
-    console.log("LOG: PATCH /api/notes/" + id + " updating", validated);
     const updatedNote = await Note.findOneAndUpdate(
       { _id: id, userId: user._id },
       validated,
@@ -66,14 +63,12 @@ export async function PATCH(
     ).lean();
 
     if (!updatedNote) {
-      console.log("LOG: PATCH /api/notes/" + id + " not found");
       return NextResponse.json(
         { error: "Note not found or unauthorized" },
         { status: 404 },
       );
     }
 
-    console.log("LOG: PATCH /api/notes/" + id + " success", updatedNote);
     return NextResponse.json(updatedNote);
   } catch (error) {
     console.error("ERROR: PATCH /api/notes", error);

@@ -10,8 +10,7 @@ const ASSETS_TO_CACHE = [
 self.addEventListener("install", (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      console.log("[Service Worker] Caching Application Shell");
-      return cache.addAll(ASSETS_TO_CACHE);
+            return cache.addAll(ASSETS_TO_CACHE);
     })
   );
   self.skipWaiting();
@@ -23,8 +22,7 @@ self.addEventListener("activate", (event) => {
       return Promise.all(
         cacheNames.map((name) => {
           if (name !== CACHE_NAME) {
-            console.log("[Service Worker] Removing old cache", name);
-            return caches.delete(name);
+                        return caches.delete(name);
           }
         })
       );

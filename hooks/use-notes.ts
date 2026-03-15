@@ -172,16 +172,14 @@ export function useAddNote() {
 
   return useMutation({
     mutationFn: async (newNote: Partial<Note>) => {
-      console.log("LOG: POST request to /api/notes", newNote);
-      const { _id, ...noteData } = newNote;
-      if (_id) console.log("LOG: Stripping optimistic _id", _id);
+      const noteData = { ...newNote };
+      delete noteData._id;
       const response = await fetch("/api/notes", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(noteData),
       });
 
-      console.log("LOG: POST response status", response.status);
       if (!response.ok) {
         const error = await response.json();
         console.error("ERROR: POST failed", error);
@@ -189,11 +187,9 @@ export function useAddNote() {
       }
 
       const result = await response.json();
-      console.log("LOG: POST successful, created note", result);
       return result as Note;
     },
     onMutate: async (newNote) => {
-      console.log("LOG: Optimistic create for temp note");
       await queryClient.cancelQueries({ queryKey: ["notes"] });
       const previousNotes = queryClient.getQueryData<Note[]>(["notes"]);
 
@@ -215,13 +211,6 @@ export function useAddNote() {
       return { previousNotes, tempId };
     },
     onSuccess: (newNote, _variables, context) => {
-      console.log(
-        "LOG: onSuccess callback - replacing temp note with real note",
-        {
-          tempId: context?.tempId,
-          realId: newNote._id,
-        },
-      );
       queryClient.setQueryData<Note[]>(["notes"], (old = []) => {
         return old.map((n) => (n._id === context?.tempId ? newNote : n));
       });
@@ -244,14 +233,12 @@ export function useUpdateNote() {
       id,
       ...updateData
     }: Partial<Note> & { id: string }) => {
-      console.log("LOG: PATCH request to /api/notes/" + id, updateData);
       const res = await fetch(`/api/notes/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(updateData),
       });
 
-      console.log("LOG: PATCH response status", res.status);
       if (!res.ok) {
         const error = await res.json();
         console.error("ERROR: PATCH failed", error);
@@ -259,11 +246,9 @@ export function useUpdateNote() {
       }
 
       const result = await res.json();
-      console.log("LOG: PATCH successful, updated note", result);
       return result as Note;
     },
     onMutate: async (updatedNote) => {
-      console.log("LOG: Optimistic update for note", updatedNote.id);
       await queryClient.cancelQueries({ queryKey: ["notes"] });
       const previousNotes = queryClient.getQueryData<Note[]>(["notes"]);
 
@@ -276,7 +261,6 @@ export function useUpdateNote() {
       return { previousNotes };
     },
     onSuccess: (updatedNote) => {
-      console.log("LOG: onSuccess callback - updating query cache");
       queryClient.setQueryData<Note[]>(["notes"], (old = []) =>
         old.map((n) => (n._id === updatedNote._id ? updatedNote : n)),
       );

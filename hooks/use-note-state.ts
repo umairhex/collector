@@ -63,14 +63,6 @@ export function useNoteState(activeNoteId: string | null) {
         category: localCategory || activeNote.category,
       });
 
-      console.log("LOG: Save triggered", {
-        noteId: activeNoteId,
-        isTemp: activeNoteId.startsWith("temp-"),
-        title: localTitle,
-        contentLength: localContent.length,
-        category: validated.category,
-      });
-
       if (activeNoteId.startsWith("temp-")) {
         console.warn(
           "LOG: [useNoteState] saveNote returned early due to temp- id",
@@ -79,15 +71,10 @@ export function useNoteState(activeNoteId: string | null) {
         toast.info("Creating note, please wait...");
         return;
       } else {
-        console.log("LOG: Updating existing note", { id: activeNoteId });
         updateNote.mutate(
           { id: activeNoteId, ...validated },
           {
-            onSuccess: (updatedNote) => {
-              console.log("LOG: Note saved successfully", {
-                id: updatedNote._id,
-                title: updatedNote.title,
-              });
+            onSuccess: () => {
               toast.success("Note saved successfully");
             },
             onError: (error) => {
