@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 import { z } from "zod";
 import connectToDatabase from "@/lib/mongodb";
 import Note from "@/models/Note";
+import Category from "@/models/Category";
 import { updateNoteSchema } from "@/lib/validations";
 import { verifyAuth } from "@/lib/auth";
 
@@ -21,10 +22,40 @@ export async function PATCH(
       return NextResponse.json({ error: "Invalid Note ID" }, { status: 400 });
     }
 
+    console.log("LOG: PATCH /api/notes/" + id + " received", body);
     await connectToDatabase();
 
     const validated = updateNoteSchema.parse(body);
+    console.log("LOG: PATCH /api/notes/" + id + " validated", validated);
 
+    if (validated.category) {
+      validated.category = validated.category
+        .trim()
+        .split(" ")
+        .map(
+          (word: string) =>
+            word.charAt(0).toUpperCase() + word.slice(1).toLowerCase(),
+        )
+        .join(" ");
+
+      const isFallback = ["General", "Ideas", "Work"].includes(
+        validated.category,
+      );
+      if (!isFallback) {
+        const categoryExists = await Category.findOne({
+          userId: user._id,
+          name: { $regex: new RegExp(`^${validated.category}$`, "i") },
+        });
+        if (!categoryExists) {
+          return NextResponse.json(
+            { error: "Invalid category" },
+            { status: 400 },
+          );
+        }
+      }
+    }
+
+    console.log("LOG: PATCH /api/notes/" + id + " updating", validated);
     const updatedNote = await Note.findOneAndUpdate(
       { _id: id, userId: user._id },
       validated,
@@ -35,14 +66,17 @@ export async function PATCH(
     ).lean();
 
     if (!updatedNote) {
+      console.log("LOG: PATCH /api/notes/" + id + " not found");
       return NextResponse.json(
         { error: "Note not found or unauthorized" },
         { status: 404 },
       );
     }
 
+    console.log("LOG: PATCH /api/notes/" + id + " success", updatedNote);
     return NextResponse.json(updatedNote);
   } catch (error) {
+    console.error("ERROR: PATCH /api/notes", error);
     if (error instanceof z.ZodError) {
       return NextResponse.json({ error: error.format() }, { status: 400 });
     }

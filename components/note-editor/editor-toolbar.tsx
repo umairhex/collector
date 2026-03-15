@@ -6,7 +6,6 @@ import {
   Trash2,
   RefreshCcw,
   CheckCircle2,
-  SaveAll,
   Save,
   Share2,
   Download,
@@ -48,8 +47,6 @@ interface EditorToolbarProps {
   isDeleting: boolean;
   onDelete: () => void;
   onPaste: () => Promise<void>;
-  isAutoSave: boolean;
-  onToggleAutoSave: () => void;
   onManualSave: () => void;
   onShare: () => void;
   onExport: (format: "txt" | "md") => void;
@@ -64,8 +61,6 @@ export const EditorToolbar = React.memo(function EditorToolbar({
   isDeleting,
   onDelete,
   onPaste,
-  isAutoSave,
-  onToggleAutoSave,
   onManualSave,
   onShare,
   onExport,
@@ -80,21 +75,12 @@ export const EditorToolbar = React.memo(function EditorToolbar({
       className={`bg-background/60 animate-in fade-in slide-in-from-top-4 border-border flex max-w-full flex-wrap items-center justify-center border shadow-sm backdrop-blur-xl duration-700 sm:w-fit ${isMobile ? "gap-0.5 rounded-xl p-1" : "gap-1.5 rounded-2xl p-1.5"}`}
     >
       <ToolbarButton
-        icon={SaveAll}
-        label={isAutoSave ? "Auto Save: On" : "Auto Save: Off"}
-        active={isAutoSave}
-        onClick={onToggleAutoSave}
+        icon={Save}
+        label="Save Note"
+        onClick={onManualSave}
+        isLoading={isUpdating}
+        loaderIcon={RefreshCcw}
       />
-
-      {!isAutoSave && (
-        <ToolbarButton
-          icon={Save}
-          label="Save Note"
-          onClick={onManualSave}
-          isLoading={isUpdating}
-          loaderIcon={RefreshCcw}
-        />
-      )}
 
       {!isMobile && (
         <>
@@ -120,7 +106,7 @@ export const EditorToolbar = React.memo(function EditorToolbar({
               side="top"
               className="hidden text-[10px] tracking-wider md:block"
             >
-              Syncing...
+              Saving...
             </TooltipContent>
           </Tooltip>
         ) : typeof navigator !== "undefined" && !navigator.onLine ? (
@@ -144,7 +130,7 @@ export const EditorToolbar = React.memo(function EditorToolbar({
               side="top"
               className="hidden items-center gap-2 border-none bg-black/80 text-[10px] tracking-wider text-white backdrop-blur-md md:flex"
             >
-              All Saved
+              Saved
             </TooltipContent>
           </Tooltip>
         )}

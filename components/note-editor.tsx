@@ -31,10 +31,8 @@ export function NoteEditor() {
     setLocalTitle,
     localContent,
     setLocalContent,
-    isAutoSave,
-    toggleAutoSave,
-    scheduleUpdate,
     handleManualSave,
+    handleCategoryChange,
     isUpdating,
   } = useNoteSync(activeNoteId);
 
@@ -56,20 +54,24 @@ export function NoteEditor() {
     await handlePaste((text) => {
       const nextContent = localContent ? `${localContent}\n${text}` : text;
       setLocalContent(nextContent);
-      scheduleUpdate({ content: nextContent });
     });
-  }, [handlePaste, localContent, setLocalContent, scheduleUpdate]);
+  }, [handlePaste, localContent, setLocalContent]);
+
+  const onPasteHandlerRef = React.useRef(onPasteHandler);
+  React.useEffect(() => {
+    onPasteHandlerRef.current = onPasteHandler;
+  }, [onPasteHandler]);
 
   React.useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.altKey && e.key === "v") {
         e.preventDefault();
-        onPasteHandler();
+        onPasteHandlerRef.current();
       }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [onPasteHandler]);
+  }, []);
 
   return (
     <div className="bg-background relative flex h-full flex-1 flex-col overflow-hidden">
@@ -104,15 +106,13 @@ export function NoteEditor() {
                 content={localContent}
                 onTitleChange={(title) => {
                   setLocalTitle(title);
-                  scheduleUpdate({ title });
                 }}
                 onContentChange={(content) => {
                   setLocalContent(content);
-                  scheduleUpdate({ content });
                 }}
                 category={activeNote.category}
                 categoriesList={categoriesList}
-                onCategoryChange={(category) => scheduleUpdate({ category })}
+                onCategoryChange={handleCategoryChange}
                 updatedAt={activeNote.updatedAt}
                 toolbar={
                   <EditorToolbar
@@ -121,8 +121,6 @@ export function NoteEditor() {
                     isDeleting={isDeleting}
                     onDelete={() => handleDelete(notes || [], activeCategory)}
                     onPaste={onPasteHandler}
-                    isAutoSave={isAutoSave}
-                    onToggleAutoSave={toggleAutoSave}
                     onManualSave={handleManualSave}
                     onExport={(format) =>
                       handleExport(localTitle, localContent, format)

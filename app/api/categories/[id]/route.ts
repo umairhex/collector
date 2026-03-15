@@ -11,7 +11,7 @@ export async function PATCH(
 ) {
   try {
     const { id } = await props.params;
-    const { name } = await req.json();
+    let { name } = await req.json();
 
     const { isAuthorized, user } = await verifyAuth();
     if (!isAuthorized || !user)
@@ -23,6 +23,16 @@ export async function PATCH(
         { status: 400 },
       );
     }
+
+    // LOG: Normalize category name to title case
+    name = name
+      .trim()
+      .split(" ")
+      .map(
+        (word: string) =>
+          word.charAt(0).toUpperCase() + word.slice(1).toLowerCase(),
+      )
+      .join(" ");
 
     await connectToDatabase();
 
@@ -94,9 +104,25 @@ export async function DELETE(
 
     const categoryName = category.name;
 
+    // LOG: Validate or create fallback category exists before reassignment
+    let fallbackCategory = await Category.findOne({
+      userId: user._id,
+      name: "General",
+    });
+
+    if (!fallbackCategory) {
+      // LOG: Create General category if it doesn't exist
+      fallbackCategory = await Category.create({
+        userId: user._id,
+        name: "General",
+      });
+    }
+
+    const fallbackName = fallbackCategory.name;
+
     await Note.updateMany(
       { userId: user._id, category: categoryName },
-      { category: "General" },
+      { category: fallbackName },
     );
 
     await Category.findByIdAndDelete(id);

@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Plus, Settings, LogOut, RefreshCw } from "lucide-react";
+import { Plus, Settings, LogOut } from "lucide-react";
 import { useQueryState } from "nuqs";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -21,12 +21,7 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar";
 import { useAuthMutation } from "@/hooks/use-auth";
-import {
-  useAddNote,
-  useCategories,
-  useNotes,
-  useSyncNotes,
-} from "@/hooks/use-notes";
+import { useAddNote, useCategories, useNotes } from "@/hooks/use-notes";
 import { useCategoryActions } from "@/hooks/use-category-actions";
 import { CategoryList } from "./app-sidebar/category-list";
 import { NoteList } from "./app-sidebar/note-list";
@@ -62,24 +57,22 @@ export function AppSidebar() {
 
   const auth = useAuthMutation();
   const addNote = useAddNote();
-  const syncNotes = useSyncNotes();
   const { data: notes = [] } = useNotes();
   const { data: categories = [] } = useCategories();
 
-  const handleSync = async () => {
-    syncNotes.mutate(undefined, {
-      onSuccess: () => toast.success("Sync complete"),
-      onError: (error) => toast.error(`Sync failed: ${error.message}`),
-    });
-  };
-
   const handleCreateNote = () => {
     const category = activeCategory === "all" ? "General" : activeCategory;
+    const tempId = `temp-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+
+    setActiveNoteId(tempId);
+
     addNote.mutate(
-      { category },
+      { category, _id: tempId },
       {
         onSuccess: (note) => {
-          setActiveNoteId(note._id);
+          setTimeout(() => {
+            setActiveNoteId(note._id);
+          }, 200);
           toast.success(`Note created in ${category}`);
         },
         onError: () => toast.error("Failed to create note"),
@@ -107,7 +100,7 @@ export function AppSidebar() {
       </SidebarHeader>
 
       <SidebarContent className="gap-6 py-6">
-        <SidebarGroup className="px-4">
+        <SidebarGroup className="px-4 group-data-[collapsible=icon]:hidden">
           <SidebarGroupContent>
             <SearchInput
               value={searchQuery}
@@ -141,7 +134,7 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        <SidebarGroup className="px-2">
+        <SidebarGroup className="px-2 group-data-[collapsible=icon]:hidden">
           <SidebarGroupLabel className="text-[10px] tracking-[0.2em] uppercase">
             Notes
           </SidebarGroupLabel>
@@ -165,26 +158,11 @@ export function AppSidebar() {
           <SidebarMenuItem>
             <SidebarMenuButton
               size="lg"
-              className="hover:bg-sidebar-accent/50 group/sync rounded-xl"
-              onClick={handleSync}
-              disabled={syncNotes.isPending}
-            >
-              <RefreshCw
-                className={`h-4 w-4 transition-transform duration-500 group-hover:rotate-180 ${syncNotes.isPending ? "animate-spin" : ""}`}
-              />
-              <span className="text-[10px] font-medium tracking-[0.15em] uppercase">
-                Sync Notes
-              </span>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-          <SidebarMenuItem>
-            <SidebarMenuButton
-              size="lg"
               onClick={() => setIsAuthOpen(true)}
               className="hover:bg-sidebar-accent/50 rounded-xl"
             >
               <Settings className="h-4 w-4" />
-              <span className="text-[10px] font-medium tracking-[0.15em] uppercase">
+              <span className="text-[10px] font-medium tracking-[0.15em] uppercase group-data-[collapsible=icon]:hidden">
                 Settings
               </span>
             </SidebarMenuButton>
@@ -210,7 +188,7 @@ export function AppSidebar() {
               disabled={auth.isPending}
             >
               <LogOut className="h-4 w-4" />
-              <span className="text-[10px] font-medium tracking-[0.15em] uppercase">
+              <span className="text-[10px] font-medium tracking-[0.15em] uppercase group-data-[collapsible=icon]:hidden">
                 Logout
               </span>
             </SidebarMenuButton>

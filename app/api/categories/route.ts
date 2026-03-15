@@ -30,9 +30,18 @@ export async function POST(req: Request) {
   }
 
   try {
-    const { name } = await req.json();
+    let { name } = await req.json();
     if (!name)
       return NextResponse.json({ error: "Name is required" }, { status: 400 });
+
+    name = name
+      .trim()
+      .split(" ")
+      .map(
+        (word: string) =>
+          word.charAt(0).toUpperCase() + word.slice(1).toLowerCase(),
+      )
+      .join(" ");
 
     await connectToDatabase();
 

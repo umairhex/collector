@@ -27,7 +27,7 @@ export function useCategories() {
   const categoriesQuery = useQuery<Category[]>({
     queryKey: ["categories"],
     queryFn: fetchCategories,
-    staleTime: 1000 * 60 * 5,
+    staleTime: 1000 * 60 * 1,
   });
 
   return React.useMemo(() => {
@@ -35,7 +35,7 @@ export function useCategories() {
     const catMap = new Map<string, number>();
 
     notes?.forEach((note) => {
-      const cat = note.category || "General";
+      const cat = (note.category || "General").toLowerCase();
       catMap.set(cat, (catMap.get(cat) || 0) + 1);
     });
 
@@ -44,13 +44,13 @@ export function useCategories() {
         ? categories.map((c) => ({
             id: c.name.toLowerCase(),
             name: c.name,
-            count: catMap.get(c.name) || 0,
+            count: catMap.get(c.name.toLowerCase()) || 0,
             _id: c._id,
           }))
         : DEFAULT_CATEGORIES.map((name) => ({
             id: name.toLowerCase(),
             name,
-            count: catMap.get(name) || 0,
+            count: catMap.get(name.toLowerCase()) || 0,
           }));
 
     if (
@@ -60,7 +60,7 @@ export function useCategories() {
       displayCategories.push({
         id: "general",
         name: "General",
-        count: catMap.get("General") || 0,
+        count: catMap.get("general") || 0,
       });
     }
 
@@ -114,11 +114,16 @@ export function useAddCategory() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (name: string) => {
-      await fetch("/api/categories", {
+      const response = await fetch("/api/categories", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name }),
       });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Failed to add category");
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["categories"] });
@@ -130,11 +135,16 @@ export function useUpdateCategory() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({ id, name }: { id: string; name: string }) => {
-      await fetch(`/api/categories/${id}`, {
+      const response = await fetch(`/api/categories/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name }),
       });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Failed to update category");
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["categories"] });
@@ -147,7 +157,15 @@ export function useDeleteCategory() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (id: string) => {
-      await fetch(`/api/categories/${id}`, { method: "DELETE" });
+      const response = await fetch(`/api/categories/${id}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Failed to delete category");
+      }
+
       return id;
     },
     onSuccess: () => {
@@ -162,18 +180,32 @@ export function useAddNote() {
 
   return useMutation({
     mutationFn: async (newNote: Partial<Note>) => {
+      console.log("LOG: POST request to /api/notes", newNote);
+      const { _id, ...noteData } = newNote;
+      if (_id) console.log("LOG: Stripping optimistic _id", _id);
       const response = await fetch("/api/notes", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(newNote),
+        body: JSON.stringify(noteData),
       });
-      return response.json() as Promise<Note>;
+
+      console.log("LOG: POST response status", response.status);
+      if (!response.ok) {
+        const error = await response.json();
+        console.error("ERROR: POST failed", error);
+        throw new Error(error.error || "Failed to create note");
+      }
+
+      const result = await response.json();
+      console.log("LOG: POST successful, created note", result);
+      return result as Note;
     },
     onMutate: async (newNote) => {
+      console.log("LOG: Optimistic create for temp note");
       await queryClient.cancelQueries({ queryKey: ["notes"] });
       const previousNotes = queryClient.getQueryData<Note[]>(["notes"]);
 
-      const tempId = `temp-${Date.now()}`;
+      const tempId = `temp-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
       const optimisticNote = {
         _id: tempId,
         ...newNote,
@@ -189,11 +221,19 @@ export function useAddNote() {
       return { previousNotes, tempId };
     },
     onSuccess: (newNote, _variables, context) => {
+      console.log(
+        "LOG: onSuccess callback - replacing temp note with real note",
+        {
+          tempId: context?.tempId,
+          realId: newNote._id,
+        },
+      );
       queryClient.setQueryData<Note[]>(["notes"], (old = []) => {
         return old.map((n) => (n._id === context?.tempId ? newNote : n));
       });
     },
     onError: (_err, _newNote, context) => {
+      console.error("ERROR: onError callback - rolling back optimistic create");
       if (context?.previousNotes) {
         queryClient.setQueryData(["notes"], context.previousNotes);
       }
@@ -209,14 +249,26 @@ export function useUpdateNote() {
       id,
       ...updateData
     }: Partial<Note> & { id: string }) => {
+      console.log("LOG: PATCH request to /api/notes/" + id, updateData);
       const res = await fetch(`/api/notes/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(updateData),
       });
-      return res.json() as Promise<Note>;
+
+      console.log("LOG: PATCH response status", res.status);
+      if (!res.ok) {
+        const error = await res.json();
+        console.error("ERROR: PATCH failed", error);
+        throw new Error(error.error || "Failed to update note");
+      }
+
+      const result = await res.json();
+      console.log("LOG: PATCH successful, updated note", result);
+      return result as Note;
     },
     onMutate: async (updatedNote) => {
+      console.log("LOG: Optimistic update for note", updatedNote.id);
       await queryClient.cancelQueries({ queryKey: ["notes"] });
       const previousNotes = queryClient.getQueryData<Note[]>(["notes"]);
 
@@ -229,11 +281,13 @@ export function useUpdateNote() {
       return { previousNotes };
     },
     onSuccess: (updatedNote) => {
+      console.log("LOG: onSuccess callback - updating query cache");
       queryClient.setQueryData<Note[]>(["notes"], (old = []) =>
         old.map((n) => (n._id === updatedNote._id ? updatedNote : n)),
       );
     },
     onError: (_err, _newNote, context) => {
+      console.error("ERROR: onError callback - rolling back optimistic update");
       if (context?.previousNotes) {
         queryClient.setQueryData(["notes"], context.previousNotes);
       }
@@ -246,7 +300,17 @@ export function useDeleteNote() {
 
   return useMutation({
     mutationFn: async (id: string) => {
-      await fetch(`/api/notes/${id}`, { method: "DELETE" });
+      if (id.startsWith("temp-")) {
+        return id;
+      }
+
+      const response = await fetch(`/api/notes/${id}`, { method: "DELETE" });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Failed to delete note");
+      }
+
       return id;
     },
     onMutate: async (deletedId) => {
@@ -263,26 +327,12 @@ export function useDeleteNote() {
       queryClient.setQueryData<Note[]>(["notes"], (old = []) =>
         old.filter((n) => n._id !== deletedId),
       );
+      queryClient.invalidateQueries({ queryKey: ["categories"] });
     },
-    onError: (_err, _newNote, context) => {
+    onError: (_err, _deletedId, context) => {
       if (context?.previousNotes) {
         queryClient.setQueryData(["notes"], context.previousNotes);
       }
-    },
-  });
-}
-export function useSyncNotes() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: async () => {
-      const response = await fetch("/api/notes/sync", {
-        method: "POST",
-      });
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["notes"] });
-      queryClient.invalidateQueries({ queryKey: ["categories"] });
     },
   });
 }

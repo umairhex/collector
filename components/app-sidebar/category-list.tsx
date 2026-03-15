@@ -43,19 +43,17 @@ export function CategoryList({
             className="group/btn hover:bg-sidebar-accent/50 relative h-9 w-full rounded-xl transition-all"
             tooltip={cat.name}
           >
-            <div className="flex items-center gap-2.5">
-              {cat.id === "all" ? (
-                <FolderOpen className="h-4 w-4 shrink-0 transition-transform group-hover/btn:scale-110" />
-              ) : (
-                <Hash className="h-4 w-4 shrink-0 transition-transform group-hover/btn:scale-110" />
-              )}
-              <span className="truncate text-[11px] font-medium tracking-wide uppercase">
-                {cat.name}
-              </span>
-            </div>
+            {cat.id === "all" ? (
+              <FolderOpen className="h-4 w-4 shrink-0 transition-transform group-hover/btn:scale-110" />
+            ) : (
+              <Hash className="h-4 w-4 shrink-0 transition-transform group-hover/btn:scale-110" />
+            )}
+            <span className="truncate text-[11px] font-medium tracking-wide uppercase group-data-[collapsible=icon]:hidden">
+              {cat.name}
+            </span>
             <Badge
               variant={activeCategory === cat.id ? "secondary" : "outline"}
-              className="bg-primary/5 group-data-[active=true]:bg-primary group-data-[active=true]:text-primary-foreground ml-auto flex h-4.5 min-w-8 items-center justify-center border-none px-1 text-[9px] font-bold group-hover/btn:opacity-0"
+              className="bg-primary/5 group-data-[active=true]:bg-primary group-data-[active=true]:text-primary-foreground ml-auto flex h-4.5 min-w-8 items-center justify-center border-none px-1 text-[9px] font-bold group-hover/btn:opacity-0 group-data-[collapsible=icon]:hidden"
             >
               {cat.count}
             </Badge>
